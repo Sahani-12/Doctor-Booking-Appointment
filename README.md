@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # CareConnect — Doctor appointment booking (full stack)
 
 ## Complete Production-Ready Implementation ✅
@@ -537,3 +538,6 @@ Then visit:
 ---
 
 _Last Updated: March 2024_
+=======
+# Doctor-Booking-Appointment
+>>>>>>> 42d8391688f782cfddf49a5a3ca2efa2d4866f6d
