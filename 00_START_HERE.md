@@ -253,7 +253,7 @@ npm start
 ```bash
 cd CareConnect-User-main
 npm run dev
-# Runs on http://localhost:5175
+# Runs on https://doctor-booking-appointment-fd5x.vercel.app/
 ```
 
 ### Terminal 3: Admin Panel

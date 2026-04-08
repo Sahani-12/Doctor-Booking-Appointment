@@ -143,7 +143,7 @@ const Login = () => {
         <div className="text-center mt-4">
           <p>
             Continue as Admin?{" "}
-            <a href="http://localhost:5175">
+            <a href="https://doctor-booking-appointment-fd5x.vercel.app/">
               <button className="text-blue-600 hover:underline">Log in</button>
             </a>{" "}
           </p>

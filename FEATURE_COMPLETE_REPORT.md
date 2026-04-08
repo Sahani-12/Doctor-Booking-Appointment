@@ -242,7 +242,7 @@ interface Doctor {
 
 - **Admin Panel:** http://localhost:5178
 - **User Frontend:** http://localhost:5174 (or similar)
-- **Doctor Frontend:** http://localhost:5175 (or similar)
+- **Doctor Frontend:** https://doctor-booking-appointment-fd5x.vercel.app/ (or similar)
 
 ---
 

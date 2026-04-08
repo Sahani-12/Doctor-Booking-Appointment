@@ -99,7 +99,7 @@
 
 ```
 Backend Server:      ✅ http://localhost:3001/api
-User App:           ✅ http://localhost:5175
+User App:           ✅ https://doctor-booking-appointment-fd5x.vercel.app/
 Admin Panel:        ✅ http://localhost:5176
 Doctor Portal:      ✅ http://localhost:5177
 Database:           ✅ MongoDB Atlas (careconnect)
@@ -128,7 +128,7 @@ cd "CareConnect-User-main"
 npm run dev
 ```
 
-- Runs on: **http://localhost:5175** (or next available port)
+- Runs on: **https://doctor-booking-appointment-fd5x.vercel.app/** (or next available port)
 - API calls to: **http://localhost:3001/api**
 
 #### 3. Start Admin Panel
@@ -185,7 +185,7 @@ Then serve dist folders with your web server (Nginx, Apache, etc.)
 
 ### Sample User
 
-- **Create via**: User registration page (http://localhost:5175/register)
+- **Create via**: User registration page (https://doctor-booking-appointment-fd5x.vercel.app//register)
 - **or use**: Any registered user account
 
 ### Sample Doctor
