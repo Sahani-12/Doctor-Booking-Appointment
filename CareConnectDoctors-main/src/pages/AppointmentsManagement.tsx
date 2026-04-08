@@ -111,6 +111,7 @@ export default function DoctorAppointmentsPage() {
         a._id === appointmentId ? { ...a, status: "confirmed" } : a,
       );
       setAppointments(updatedAppointments);
+      // here
 
       if (selectedAppointment?._id === appointmentId) {
         setSelectedAppointment({ ...selectedAppointment, status: "confirmed" });
