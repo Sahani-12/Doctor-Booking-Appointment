@@ -3,7 +3,7 @@ import { Link, useLocation } from "react-router";
 
 // Assume these icons are imported from an icon library
 import {
-  CalenderIcon,
+  CalendarIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
@@ -42,7 +42,7 @@ const navItems: NavItem[] = [
   },
 
   {
-    icon: <CalenderIcon />,
+    icon: <CalendarIcon />,
     name: "Appointments",
     path: "/appointments",
   },
@@ -58,7 +58,7 @@ const navItems: NavItem[] = [
     subItems: [{ name: "Health Records", path: "/basic-tables", pro: false }],
   },
   {
-    icon: <CalenderIcon />,
+    icon: <CalendarIcon />,
     name: "Calender",
     path: "/calendar",
   },
