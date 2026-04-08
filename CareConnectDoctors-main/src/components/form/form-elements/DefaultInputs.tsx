@@ -3,7 +3,7 @@ import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
 import Input from "../input/InputField";
 import Select from "../Select";
-import { CalenderIcon, EyeCloseIcon, EyeIcon, TimeIcon } from "../../../icons";
+import { CalendarIcon, EyeCloseIcon, EyeIcon, TimeIcon } from "../../../icons";
 import Flatpickr from "react-flatpickr";
 
 export default function MedicalInputs() {
@@ -152,7 +152,7 @@ export default function MedicalInputs() {
               className="h-11 w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-none dark:bg-gray-900 dark:text-white"
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-              <CalenderIcon className="size-6" />
+              <CalendarIcon className="size-6" />
             </span>
           </div>
         </div>
