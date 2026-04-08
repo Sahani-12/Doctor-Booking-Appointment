@@ -33,7 +33,7 @@ import EnvelopeIcon from "./envelope.svg?react";
 import UserIcon from "./user-line.svg?react";
 
 // 🔥 IMPORTANT FIX (same name use kiya hai)
-import CalendarIcon from "./calendar-Line.svg?react";
+import CalendarIcon from "./calendar-icon.svg?react";
 
 import EyeIcon from "./eye.svg?react";
 import EyeCloseIcon from "./eye-close.svg?react";
