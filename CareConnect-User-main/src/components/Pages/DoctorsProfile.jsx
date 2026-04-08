@@ -4,10 +4,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarDays, Clock, MapPin, Star, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Navbar from "../Navbar";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -54,7 +53,9 @@ export default function DoctorProfile() {
         const storyData = await storyRes.json();
 
         setDoctor(docData.data || docData);
-        setStories(Array.isArray(storyData) ? storyData : storyData?.data || []);
+        setStories(
+          Array.isArray(storyData) ? storyData : storyData?.data || [],
+        );
       } catch (err) {
         console.error(err);
       }
