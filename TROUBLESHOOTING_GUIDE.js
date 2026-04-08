@@ -173,7 +173,7 @@ Connection: ✅ WORKING (verified)
    Before trying solutions above:
 
    □ Is backend running?
-     Check: Open http://localhost:3001 in browser
+     Check: Open https://doctor-booking-appointment-i137.onrender.com in browser
      → Should see "Cannot GET /" (404 is OK, means running)
      If ERROR or timeout: Start backend
 

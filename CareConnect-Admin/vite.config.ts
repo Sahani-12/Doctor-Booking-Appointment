@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:3001",
+        target: "https://doctor-booking-appointment-i137.onrender.com",
         changeOrigin: true,
       },
     },

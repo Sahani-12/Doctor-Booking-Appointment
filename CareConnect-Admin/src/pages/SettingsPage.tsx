@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { Save, AlertCircle, Loader } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://doctor-booking-appointment-i137.onrender.com";
 
 export default function SettingsPage() {
   const { token } = useAuth();

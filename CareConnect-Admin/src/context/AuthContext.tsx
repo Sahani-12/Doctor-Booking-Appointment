@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log("🔄 AuthContext: Sending login request...");
       const response = await fetch(
-        "http://localhost:3001/api/auth/admin-login",
+        "https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login",
         {
           method: "POST",
           headers: {

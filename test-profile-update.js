@@ -4,16 +4,19 @@
 const testProfileUpdate = async () => {
   try {
     // First, login to get token
-    const loginResponse = await fetch("http://localhost:3001/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const loginResponse = await fetch(
+      "https://doctor-booking-appointment-i137.onrender.com/api/auth/login",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: "doctor@example.com", // Use a test doctor email
+          password: "password123",
+        }),
       },
-      body: JSON.stringify({
-        email: "doctor@example.com", // Use a test doctor email
-        password: "password123",
-      }),
-    });
+    );
 
     if (!loginResponse.ok) {
       console.log("Login failed - using mock token for testing");
@@ -25,7 +28,7 @@ const testProfileUpdate = async () => {
 
     // Test profile update with experience and license number
     const updateResponse = await fetch(
-      "http://localhost:3001/api/doctors/profile",
+      "https://doctor-booking-appointment-i137.onrender.com/api/doctors/profile",
       {
         method: "PUT",
         headers: {

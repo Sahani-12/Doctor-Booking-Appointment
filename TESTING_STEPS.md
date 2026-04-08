@@ -9,7 +9,7 @@
 **Command**:
 
 ```
-Open Browser: http://localhost:3001
+Open Browser: https://doctor-booking-appointment-i137.onrender.com
 ```
 
 **Expected**:

@@ -8,14 +8,17 @@ async function getAdminToken() {
   console.log("🔐 Getting admin token...\n");
 
   try {
-    const response = await fetch("http://localhost:3001/api/auth/admin-login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: "admin@careconnect.com",
-        password: "admin123",
-      }),
-    });
+    const response = await fetch(
+      "https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "admin@careconnect.com",
+          password: "admin123",
+        }),
+      },
+    );
 
     const data = await response.json();
 
@@ -44,7 +47,7 @@ async function testWithToken(token) {
     process.exit(1);
   }
 
-  const BASE_URL = "http://localhost:3001";
+  const BASE_URL = "https://doctor-booking-appointment-i137.onrender.com";
   const colors = {
     reset: "\x1b[0m",
     green: "\x1b[32m",

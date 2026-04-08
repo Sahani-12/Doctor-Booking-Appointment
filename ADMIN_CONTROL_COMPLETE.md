@@ -368,9 +368,12 @@ useEffect(() => {
 const fetchUsers = async () => {
   try {
     setLoading(true);
-    const response = await fetch("http://localhost:3001/api/admin/users", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const response = await fetch(
+      "https://doctor-booking-appointment-i137.onrender.com/api/admin/users",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    );
     const data = await response.json();
     setUsers(data.data || []);
   } catch (err) {
@@ -388,7 +391,7 @@ const handleVerify = async (userId: string, newStatus: boolean) => {
   try {
     setVerifying(userId);
     const response = await fetch(
-      `http://localhost:3001/api/admin/users/${userId}`,
+      `https://doctor-booking-appointment-i137.onrender.com/api/admin/users/${userId}`,
       {
         method: "PUT",
         headers: {
@@ -555,7 +558,7 @@ const filteredUsers = users.filter((user) => {
 ## Quick Links
 
 - **Admin Frontend:** http://localhost:5178
-- **Backend API:** http://localhost:3001
+- **Backend API:** https://doctor-booking-appointment-i137.onrender.com
 - **MongoDB:** Atlas careconnect collection
 - **Default Admin:** admin@careconnect.com / password
 

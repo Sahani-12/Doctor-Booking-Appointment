@@ -10,7 +10,8 @@ import interactionPlugin from "@fullcalendar/interaction";
 import { DateSelectArg, EventClickArg, EventInput } from "@fullcalendar/core";
 
 const VITE_API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+  import.meta.env.VITE_API_URL ||
+  "https://doctor-booking-appointment-i137.onrender.com/api";
 
 interface Appointment {
   _id: string;

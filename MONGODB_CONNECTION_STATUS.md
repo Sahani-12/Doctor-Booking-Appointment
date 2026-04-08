@@ -11,7 +11,7 @@
 ### Database Connection
 
 ```
-✅ Backend Server: Running on http://localhost:3001
+✅ Backend Server: Running on https://doctor-booking-appointment-i137.onrender.com
 ✅ MongoDB Atlas: Connected and responding
 ✅ Admin Authentication: Working with JWT tokens
 ✅ Data Fetching: All endpoints functional
@@ -63,7 +63,7 @@ Bearer Token in Headers
     ↓
 Backend API (Express.js)
     ↓
-http://localhost:3001
+https://doctor-booking-appointment-i137.onrender.com
     ↓
 Admin Routes (Protected)
     ↓
@@ -343,7 +343,7 @@ Real-time filtering
 ### Login Request
 
 ```bash
-curl -X POST http://localhost:3001/api/auth/admin-login \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@careconnect.com",
@@ -372,7 +372,7 @@ Response:
 ### Fetch Users Request
 
 ```bash
-curl -X GET http://localhost:3001/api/admin/users \
+curl -X GET https://doctor-booking-appointment-i137.onrender.com/api/admin/users \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -397,7 +397,7 @@ Response:
 ### Update User Request
 
 ```bash
-curl -X PUT http://localhost:3001/api/admin/users/{id} \
+curl -X PUT https://doctor-booking-appointment-i137.onrender.com/api/admin/users/{id} \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{ "isVerified": true }'
@@ -486,7 +486,7 @@ Response:
                        ↓
 ┌─────────────────────────────────────────────────────────┐
 │          Backend API (Express.js)                       │
-│              http://localhost:3001                      │
+│              https://doctor-booking-appointment-i137.onrender.com                      │
 │  • Authentication Routes                               │
 │  • Admin Routes (Admin Middleware)                      │
 │  • Protected Endpoints                                 │

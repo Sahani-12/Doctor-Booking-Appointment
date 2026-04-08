@@ -149,7 +149,7 @@ CareConnect-Admin/
 │       └── Redirects to login if no token
 │
 ├── vite.config.ts                  # Dev server config
-│   └── Proxy: /api → http://localhost:3001
+│   └── Proxy: /api → https://doctor-booking-appointment-i137.onrender.com
 │   └── Port: 5173
 │
 └── package.json
@@ -160,7 +160,7 @@ CareConnect-Admin/
 
 ```typescript
 // In apiService.ts
-const API_BASE_URL = "http://localhost:3001/api"
+const API_BASE_URL = "https://doctor-booking-appointment-i137.onrender.com/api"
                      └─────────────────────────┘
                      Must match backend PORT!
 ```
@@ -232,7 +232,7 @@ CareConnectDoctors-main/
 
 5. API CALL
    ↓
-   POST http://localhost:3001/api/auth/admin-login
+   POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login
    {
      "email": "admin@careconnect.com",
      "password": "admin123"
@@ -274,7 +274,7 @@ CareConnectDoctors-main/
 10. LOAD DASHBOARD
     ↓
     DashboardPage.tsx
-    GET http://localhost:3001/api/admin/dashboard
+    GET https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard
     Headers: Authorization: Bearer <token>
 
 11. DISPLAY DATA
@@ -320,7 +320,7 @@ NODE_ENV=development
 ### Frontend (apiService.ts - Already Configured)
 
 ```typescript
-const API_BASE_URL = "http://localhost:3001/api";
+const API_BASE_URL = "https://doctor-booking-appointment-i137.onrender.com/api";
 // This MUST match backend PORT
 ```
 
@@ -349,7 +349,7 @@ npm start
 
 ```bash
 # While backend is running, in another terminal:
-curl -X POST http://localhost:3001/api/auth/setup-admin \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/setup-admin \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@careconnect.com", "password": "admin123", "fullname": "Admin"}'
 ```
@@ -451,11 +451,11 @@ After setup, verify everything works:
 
 ```bash
 # 1. Backend running?
-curl http://localhost:3001
+curl https://doctor-booking-appointment-i137.onrender.com
 # Should return: {"success": true, "message": "CareConnect Backend API running"}
 
 # 2. Admin exists?
-curl -X POST http://localhost:3001/api/auth/admin-login \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login \
   -d '{"email": "admin@careconnect.com", "password": "admin123"}' \
   -H "Content-Type: application/json"
 # Should return: token and admin data

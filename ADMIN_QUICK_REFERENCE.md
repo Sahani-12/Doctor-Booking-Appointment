@@ -56,7 +56,7 @@ npm start
 ### Terminal 2: Create Admin User
 
 ```bash
-curl -X POST http://localhost:3001/api/auth/setup-admin \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/setup-admin \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@careconnect.com","password":"admin123","fullname":"Admin"}'
 ```
@@ -191,7 +191,7 @@ NODE_ENV=development
 
 ```
 File: src/services/apiService.ts
-API_BASE_URL = "http://localhost:3001/api"
+API_BASE_URL = "https://doctor-booking-appointment-i137.onrender.com/api"
                            ↑ Must match backend PORT
 ```
 
@@ -362,16 +362,16 @@ You now have a **production-ready admin panel** with:
 
 ```bash
 # Test backend
-curl http://localhost:3001
+curl https://doctor-booking-appointment-i137.onrender.com
 
 # Test admin login
-curl -X POST http://localhost:3001/api/auth/admin-login \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@careconnect.com","password":"admin123"}'
 
 # Test protected route
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:3001/api/admin/dashboard
+  https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard
 
 # Check ports in use
 netstat -ano | findstr :3001
@@ -387,7 +387,7 @@ taskkill /PID <PID> /F
 
 Your setup is successful when:
 
-- [x] Backend runs on http://localhost:3001
+- [x] Backend runs on https://doctor-booking-appointment-i137.onrender.com
 - [x] Admin frontend runs on http://localhost:5173
 - [x] Can login with admin@careconnect.com / admin123
 - [x] Dashboard displays with 5 stat cards

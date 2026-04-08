@@ -2,7 +2,7 @@
 
 const http = require("http");
 
-const BASE_URL = "http://localhost:3001";
+const BASE_URL = "https://doctor-booking-appointment-i137.onrender.com";
 let adminToken = "";
 
 const colors = {

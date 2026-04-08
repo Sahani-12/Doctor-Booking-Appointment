@@ -3,7 +3,6 @@ import {
   Calendar,
   Users,
   Clock,
-  Trash2,
   Eye,
   Search,
   RefreshCw,
@@ -13,17 +12,12 @@ import {
   CheckCheck,
   XCircle,
   MessageSquare,
-  Phone,
   Mail,
 } from "lucide-react";
-import { Button } from "../components/ui/modern/Button";
+
 import { Badge } from "../components/ui/modern/Badge";
 import { Modal } from "../components/ui/modern/Modal";
-import {
-  AdminTable,
-  AdminTableRow,
-  AdminTableCell,
-} from "../components/ui/modern/AdminTable";
+
 import { useDebounce } from "../hooks/useDebounce";
 
 interface Appointment {
@@ -68,7 +62,7 @@ export default function DoctorAppointmentsPage() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:3001/api/appointments/my`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/appointments/my`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -98,7 +92,7 @@ export default function DoctorAppointmentsPage() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:3001/api/appointments/${appointmentId}/status`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/appointments/${appointmentId}/status`,
         {
           method: "PUT",
           headers: {
@@ -145,7 +139,7 @@ export default function DoctorAppointmentsPage() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:3001/api/appointments/${appointmentId}/status`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/appointments/${appointmentId}/status`,
         {
           method: "PUT",
           headers: {

@@ -98,7 +98,7 @@
 ### Quick Status Check
 
 ```
-Backend Server:      ✅ http://localhost:3001/api
+Backend Server:      ✅ https://doctor-booking-appointment-i137.onrender.com/api
 User App:           ✅ https://doctor-booking-appointment-fd5x.vercel.app/
 Admin Panel:        ✅ http://localhost:5176
 Doctor Portal:      ✅ http://localhost:5177
@@ -118,7 +118,7 @@ cd "CareConnect-backend"
 npm start
 ```
 
-- Listens on: **http://localhost:3001**
+- Listens on: **https://doctor-booking-appointment-i137.onrender.com**
 - MongoDB: Automatically connects
 
 #### 2. Start User App
@@ -129,7 +129,7 @@ npm run dev
 ```
 
 - Runs on: **https://doctor-booking-appointment-fd5x.vercel.app/** (or next available port)
-- API calls to: **http://localhost:3001/api**
+- API calls to: **https://doctor-booking-appointment-i137.onrender.com/api**
 
 #### 3. Start Admin Panel
 
@@ -139,7 +139,7 @@ npm run dev
 ```
 
 - Runs on: **http://localhost:5176** (or next available port)
-- API calls to: **http://localhost:3001/api**
+- API calls to: **https://doctor-booking-appointment-i137.onrender.com/api**
 
 #### 4. Start Doctor Portal
 
@@ -149,7 +149,7 @@ npm run dev
 ```
 
 - Runs on: **http://localhost:5177** (or next available port)
-- API calls to: **http://localhost:3001/api**
+- API calls to: **https://doctor-booking-appointment-i137.onrender.com/api**
 
 ---
 
@@ -256,13 +256,13 @@ TOKEN_EXPIRES_IN=7d
 **CareConnect-User-main/.env**
 
 ```env
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 ```
 
 **CareConnect-Admin/.env**
 
 ```env
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 VITE_APP_NAME=CareConnect Admin
 NODE_ENV=development
 ```
@@ -270,7 +270,7 @@ NODE_ENV=development
 **CareConnectDoctors-main/.env**
 
 ```env
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 ```
 
 ---

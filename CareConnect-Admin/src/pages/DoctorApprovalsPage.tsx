@@ -38,7 +38,7 @@ export default function DoctorApprovalsPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:3001/api/admin/doctors/pending",
+        "https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/pending",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,7 +61,7 @@ export default function DoctorApprovalsPage() {
     try {
       setApproving(doctorId);
       const response = await fetch(
-        `http://localhost:3001/api/admin/doctors/${doctorId}/approve`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/${doctorId}/approve`,
         {
           method: "PUT",
           headers: {
@@ -90,7 +90,7 @@ export default function DoctorApprovalsPage() {
     try {
       setApproving(doctorId);
       const response = await fetch(
-        `http://localhost:3001/api/admin/doctors/${doctorId}/approve`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/${doctorId}/approve`,
         {
           method: "PUT",
           headers: {

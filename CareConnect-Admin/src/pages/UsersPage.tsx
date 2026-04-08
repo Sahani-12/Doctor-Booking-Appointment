@@ -81,11 +81,14 @@ export default function UsersPage() {
       setRefreshing(true);
       setError(""); // Clear previous errors
 
-      const response = await fetch("http://localhost:3001/api/admin/users", {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        "https://doctor-booking-appointment-i137.onrender.com/api/admin/users",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to fetch users: ${response.status}`);
@@ -110,7 +113,7 @@ export default function UsersPage() {
       setError(""); // Clear previous errors
 
       const response = await fetch(
-        `http://localhost:3001/api/admin/users/${userId}`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/admin/users/${userId}`,
         {
           method: "PUT",
           headers: {
@@ -159,7 +162,7 @@ export default function UsersPage() {
       setError(""); // Clear previous errors
 
       const response = await fetch(
-        `http://localhost:3001/api/admin/users/${userId}`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/admin/users/${userId}`,
         {
           method: "DELETE",
           headers: {

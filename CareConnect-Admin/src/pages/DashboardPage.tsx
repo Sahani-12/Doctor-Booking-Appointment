@@ -38,7 +38,7 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        "http://localhost:3001/api/admin/dashboard",
+        "https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard",
         {
           headers: {
             Authorization: `Bearer ${token}`,

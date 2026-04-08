@@ -205,7 +205,7 @@ No Page Reload
 
 ### Backend API
 
-- **URL:** http://localhost:3001
+- **URL:** https://doctor-booking-appointment-i137.onrender.com
 - **Admin Login:** POST /api/auth/admin-login
 - **Get Users:** GET /api/admin/users
 - **Get Doctors:** GET /api/admin/doctors
@@ -242,7 +242,7 @@ No Page Reload
 ```bash
 cd CareConnect-backend
 npm start
-# Runs on http://localhost:3001
+# Runs on https://doctor-booking-appointment-i137.onrender.com
 ```
 
 ### Step 2: Start Admin Frontend

@@ -7,7 +7,7 @@
 ```bash
 cd CareConnect-backend
 npm start
-# Runs on http://localhost:3001
+# Runs on https://doctor-booking-appointment-i137.onrender.com
 ```
 
 ### Step 2: Start Admin Panel
@@ -117,11 +117,11 @@ Password: admin123
 
 ## 🌐 URLs
 
-| Service     | URL                   |
-| ----------- | --------------------- |
-| Admin Panel | http://localhost:5178 |
-| Backend API | http://localhost:3001 |
-| MongoDB     | Atlas (Cloud)         |
+| Service     | URL                                                  |
+| ----------- | ---------------------------------------------------- |
+| Admin Panel | http://localhost:5178                                |
+| Backend API | https://doctor-booking-appointment-i137.onrender.com |
+| MongoDB     | Atlas (Cloud)                                        |
 
 ---
 

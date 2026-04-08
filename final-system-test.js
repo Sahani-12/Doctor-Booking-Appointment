@@ -7,7 +7,7 @@
 
 const http = require("http");
 
-const API_URL = "http://localhost:3001/api";
+const API_URL = "https://doctor-booking-appointment-i137.onrender.com/api";
 
 const colors = {
   reset: "\x1b[0m",

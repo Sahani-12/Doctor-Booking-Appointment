@@ -57,7 +57,9 @@ async function main() {
   console.log("─".repeat(70));
   try {
     const testRes = await makeRequest("GET", "/api/health");
-    console.log("✅ Backend is running on http://localhost:3001");
+    console.log(
+      "✅ Backend is running on https://doctor-booking-appointment-i137.onrender.com",
+    );
     console.log("   Status:", testRes.statusCode);
   } catch (err) {
     console.log("❌ Backend is NOT running!");

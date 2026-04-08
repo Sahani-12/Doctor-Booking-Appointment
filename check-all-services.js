@@ -9,7 +9,11 @@ console.log(`
 `);
 
 const services = [
-  { name: "Backend API", url: "http://localhost:3001", port: 3001 },
+  {
+    name: "Backend API",
+    url: "https://doctor-booking-appointment-i137.onrender.com",
+    port: 3001,
+  },
   { name: "Admin Panel Frontend", url: "http://localhost:5178", port: 5178 },
 ];
 

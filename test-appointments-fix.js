@@ -3,7 +3,7 @@
 // Test script to verify appointments fix
 const http = require("http");
 
-const BASE_URL = "http://localhost:3001/api";
+const BASE_URL = "https://doctor-booking-appointment-i137.onrender.com/api";
 
 // Test data
 let userToken = null;

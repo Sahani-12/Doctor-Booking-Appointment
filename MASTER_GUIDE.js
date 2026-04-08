@@ -182,7 +182,7 @@ Paste this in browser console (F12) and press Enter:
   console.log("Admin:", localStorage.getItem('admin') ? "✅ EXISTS" : "❌ MISSING");
   
   // Test 2: Make API call
-  fetch('http://localhost:3001/api/admin/users', {
+  fetch('https://doctor-booking-appointment-i137.onrender.com/api/admin/users', {
     headers: { 'Authorization': \`Bearer \${localStorage.getItem('adminToken')}\` }
   }).then(r => r.json()).then(d => {
     console.log("API Response:", d);

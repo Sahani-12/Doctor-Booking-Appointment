@@ -18,7 +18,7 @@ const testSignup = async () => {
     console.log("\n");
 
     const response = await axios.post(
-      "http://localhost:3001/api/auth/register/user",
+      "https://doctor-booking-appointment-i137.onrender.com/api/auth/register/user",
       userData,
     );
 

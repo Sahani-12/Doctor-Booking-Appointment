@@ -18,7 +18,7 @@
 ┃  │  • Can: Verify, Delete, Search, Filter             │    ┃
 ┃  └────────────────┬─────────────────────────────────────┘    ┃
 ┃                   │                                           ┃
-┃                   │ fetch("http://localhost:3001/...")       ┃
+┃                   │ fetch("https://doctor-booking-appointment-i137.onrender.com/...")       ┃
 ┃                   │ headers: { Authorization: Bearer token } ┃
 ┃                   ↓                                           ┃
 ┃  ┌──────────────────────────────────────────────────────┐    ┃
@@ -42,7 +42,7 @@
     ┃                              ┃
     ┃    BACKEND API               ┃
     ┃  Express.js Server           ┃
-    ┃  http://localhost:3001       ┃
+    ┃  https://doctor-booking-appointment-i137.onrender.com       ┃
     ┃                              ┃
     ┃  ┌──────────────────────┐   ┃
     ┃  │ Admin Routes         │   ┃
@@ -116,7 +116,7 @@
 │
 ├─ fetchUsers() function called
 │  │
-│  └─ fetch('http://localhost:3001/api/admin/users', {
+│  └─ fetch('https://doctor-booking-appointment-i137.onrender.com/api/admin/users', {
 │       headers: { Authorization: 'Bearer TOKEN' }
 │     })
 │
@@ -162,7 +162,7 @@
 │
 ├─ API call sent in BACKGROUND
 │  │
-│  └─ fetch('http://localhost:3001/api/admin/users/{id}', {
+│  └─ fetch('https://doctor-booking-appointment-i137.onrender.com/api/admin/users/{id}', {
 │       method: 'PUT',
 │       headers: { Authorization: 'Bearer TOKEN' },
 │       body: { isVerified: true }
@@ -440,7 +440,7 @@ If updates not saving:
 
 **Current Status:** ✅ FULLY CONNECTED & OPERATIONAL
 
-Backend: http://localhost:3001 ✓
+Backend: https://doctor-booking-appointment-i137.onrender.com ✓
 MongoDB: Connected via Atlas ✓
 Admin Panel: http://localhost:5178 ✓
 Data Sync: Real-time ✓

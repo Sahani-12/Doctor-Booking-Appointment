@@ -143,7 +143,7 @@ createdAt → new Date(createdAt).toLocaleDateString()
 ```bash
 cd "C:\Users\anand\OneDrive\Desktop\DoctorBookingSystem - Copy\CareConnect-backend"
 npm start
-# Runs on http://localhost:3001
+# Runs on https://doctor-booking-appointment-i137.onrender.com
 ```
 
 ### Start Admin Panel:

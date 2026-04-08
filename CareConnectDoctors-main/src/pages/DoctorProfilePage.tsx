@@ -73,7 +73,7 @@ export default function DoctorProfilePage() {
       setError("");
 
       const response = await fetch(
-        `http://localhost:3001/api/doctors/${doctorId}`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/doctors/${doctorId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -133,7 +133,7 @@ export default function DoctorProfilePage() {
       };
 
       const response = await fetch(
-        `http://localhost:3001/api/doctors/profile`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/doctors/profile`,
         {
           method: "PUT",
           headers: {

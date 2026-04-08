@@ -141,7 +141,9 @@ async function main() {
     console.log("\n" + "=".repeat(50));
     console.log("✅ DATABASE CONNECTION VERIFIED!");
     console.log("\n📌 Connection Details:");
-    console.log("   • Backend: http://localhost:3001");
+    console.log(
+      "   • Backend: https://doctor-booking-appointment-i137.onrender.com",
+    );
     console.log("   • Database: MongoDB Atlas (careconnect)");
     console.log("   • Admin Panel: http://localhost:5178");
     console.log("\n✅ Your admin panel is now fully connected to MongoDB!");

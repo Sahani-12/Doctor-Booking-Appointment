@@ -33,7 +33,7 @@ MongoDB connected successfully
 
 ```bash
 # Option A: Using Setup API
-curl -X POST http://localhost:3001/api/auth/setup-admin \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/setup-admin \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@careconnect.com",
@@ -152,7 +152,7 @@ npm run dev
 
 ```bash
 # Test login
-curl -X POST http://localhost:3001/api/auth/admin-login \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@careconnect.com",
@@ -167,13 +167,13 @@ curl -X POST http://localhost:3001/api/auth/admin-login \
 
 ```bash
 # First get token from login
-TOKEN=$(curl -s -X POST http://localhost:3001/api/auth/admin-login \
+TOKEN=$(curl -s -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@careconnect.com", "password": "admin123"}' \
   | jq -r '.data.token')
 
 # Then access protected endpoint
-curl -X GET http://localhost:3001/api/admin/dashboard \
+curl -X GET https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard \
   -H "Authorization: Bearer $TOKEN"
 
 # Response:
@@ -183,7 +183,7 @@ curl -X GET http://localhost:3001/api/admin/dashboard \
 ### Test Without Token (Should Fail)
 
 ```bash
-curl -X GET http://localhost:3001/api/admin/dashboard
+curl -X GET https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard
 
 # Response:
 # 401 - Not authorized, no token
@@ -207,7 +207,7 @@ mongo mongodb://localhost:27017/careconnect
 db.users.find({email: "admin@careconnect.com", role: "admin"})
 
 # If no results, create admin:
-curl -X POST http://localhost:3001/api/auth/setup-admin \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/setup-admin \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@careconnect.com", "password": "admin123", "fullname": "Admin"}'
 ```
@@ -384,7 +384,7 @@ If invalid/expired → 401 → Frontend clears token & redirects to login
 
 ```bash
 # Check if backend is running
-curl http://localhost:3001
+curl https://doctor-booking-appointment-i137.onrender.com
 
 # Check if frontend is running
 curl http://localhost:5173

@@ -22,7 +22,7 @@
   ```
 - [ ] Frontend API URL configured (apiService.ts)
   ```
-  API_BASE_URL = "http://localhost:3001/api"
+  API_BASE_URL = "https://doctor-booking-appointment-i137.onrender.com/api"
   ```
 
 ### ✅ Dependencies
@@ -62,7 +62,7 @@ npm start
 
 ```bash
 # In another terminal, test backend is running:
-curl http://localhost:3001
+curl https://doctor-booking-appointment-i137.onrender.com
 
 # Expected response:
 # {"success": true, "message": "CareConnect Backend API running", "version": "1.0.0"}
@@ -85,7 +85,7 @@ curl http://localhost:3001
 
 ```bash
 # Option A: Using curl (Windows/Mac/Linux)
-curl -X POST http://localhost:3001/api/auth/setup-admin \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/setup-admin \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@careconnect.com", "password": "admin123", "fullname": "Admin"}'
 
@@ -97,7 +97,7 @@ curl -X POST http://localhost:3001/api/auth/setup-admin \
 
 ```bash
 # Try to login with the credentials
-curl -X POST http://localhost:3001/api/auth/admin-login \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@careconnect.com", "password": "admin123"}'
 
@@ -252,7 +252,7 @@ You should see:
 
 ```bash
 # In new browser tab/window:
-curl http://localhost:3001/api/admin/dashboard \
+curl https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard \
   -H "Authorization: Bearer invalid_token"
 
 # Expected: 401 error
@@ -264,7 +264,7 @@ curl http://localhost:3001/api/admin/dashboard \
 ```bash
 # Get token from login response or localStorage
 
-curl http://localhost:3001/api/admin/dashboard \
+curl https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 
 # Expected: Dashboard data with stats
@@ -348,7 +348,7 @@ Before Production Deployment:
 - [ ] Change default admin password from "admin123" to strong password
 - [ ] Add more admin users:
   ```
-  curl -X POST http://localhost:3001/api/auth/setup-admin \
+  curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/setup-admin \
     -d '{"email": "another@admin.com", "password": "strong_password", "fullname": "Another Admin"}'
   ```
 - [ ] Update JWT_SECRET to random long string (min 32 characters)

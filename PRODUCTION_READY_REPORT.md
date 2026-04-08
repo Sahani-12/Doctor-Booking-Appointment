@@ -37,7 +37,7 @@
 - **Status**: Running ✅
 - **Build Status**: Production build created ✅
 - **API Integration**: Configured correctly ✅
-- **API URL**: http://localhost:3001/api ✅
+- **API URL**: https://doctor-booking-appointment-i137.onrender.com/api ✅
 
 **Fixed Issues:**
 
@@ -71,7 +71,7 @@
 - **Status**: Running ✅
 - **Build Status**: Production build created ✅
 - **API Integration**: Configured correctly ✅
-- **API URL**: http://localhost:3001/api ✅
+- **API URL**: https://doctor-booking-appointment-i137.onrender.com/api ✅
 
 **Fixed Issues:**
 
@@ -88,7 +88,7 @@
 #### ✅ CareConnect-User-main/.env
 
 ```
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 ```
 
 Status: ✅ Correct
@@ -96,7 +96,7 @@ Status: ✅ Correct
 #### ✅ CareConnect-Admin/.env
 
 ```
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 ```
 
 Status: ✅ Correct
@@ -104,7 +104,7 @@ Status: ✅ Correct
 #### ✅ CareConnectDoctors-main/.env
 
 ```
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 ```
 
 Status: ✅ Correct (FIXED)

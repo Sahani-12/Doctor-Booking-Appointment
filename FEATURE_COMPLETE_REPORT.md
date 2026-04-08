@@ -248,8 +248,8 @@ interface Doctor {
 
 ## Backend URL
 
-- **API Server:** http://localhost:3001
-- **Health Check:** GET http://localhost:3001/api/health
+- **API Server:** https://doctor-booking-appointment-i137.onrender.com
+- **Health Check:** GET https://doctor-booking-appointment-i137.onrender.com/api/health
 
 ---
 
@@ -460,7 +460,7 @@ All required dependencies are already installed:
 cd CareConnect-backend
 npm install
 npm start
-# Backend runs on http://localhost:3001
+# Backend runs on https://doctor-booking-appointment-i137.onrender.com
 
 # Terminal 2: Start Admin Frontend
 cd CareConnect-Admin

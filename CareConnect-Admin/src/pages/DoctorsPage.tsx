@@ -87,11 +87,14 @@ export default function DoctorsPage() {
       setRefreshing(true);
       setError(""); // Clear previous errors
 
-      const response = await fetch("http://localhost:3001/api/admin/doctors", {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        "https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to fetch doctors: ${response.status}`);
@@ -116,7 +119,7 @@ export default function DoctorsPage() {
       setError(""); // Clear previous errors
 
       const response = await fetch(
-        `http://localhost:3001/api/admin/doctors/${doctorId}/approve`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/${doctorId}/approve`,
         {
           method: "PUT",
           headers: {
@@ -165,7 +168,7 @@ export default function DoctorsPage() {
       setError(""); // Clear previous errors
 
       const response = await fetch(
-        `http://localhost:3001/api/admin/doctors/${doctorId}`,
+        `https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/${doctorId}`,
         {
           method: "DELETE",
           headers: {

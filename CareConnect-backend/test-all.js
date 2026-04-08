@@ -1,5 +1,5 @@
 const axios = require("axios");
-const API = "http://localhost:3001/api";
+const API = "https://doctor-booking-appointment-i137.onrender.com/api";
 
 (async () => {
   console.log("\n✅ BACKEND TESTING INITIATED\n");

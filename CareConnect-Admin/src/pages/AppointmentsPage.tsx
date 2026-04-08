@@ -73,7 +73,7 @@ export default function AppointmentsPage() {
       setLoading(true);
       setError("");
       const response = await fetch(
-        "http://localhost:3001/api/admin/appointments",
+        "https://doctor-booking-appointment-i137.onrender.com/api/admin/appointments",
         {
           headers: {
             Authorization: `Bearer ${token}`,

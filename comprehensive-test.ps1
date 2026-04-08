@@ -1,6 +1,6 @@
 #!/usr/bin/env pwsh
 
-$API_URL = "http://localhost:3001/api"
+$API_URL = "https://doctor-booking-appointment-i137.onrender.com/api"
 $testResults = @()
 $timestamp = Get-Date -Format "HH:mm:ss"
 

@@ -70,7 +70,9 @@
 const raw = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 // AFTER:
-const raw = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const raw =
+  import.meta.env.VITE_API_URL ||
+  "https://doctor-booking-appointment-i137.onrender.com";
 ```
 
 ### 2. Doctor Frontend
@@ -82,7 +84,9 @@ const raw = import.meta.env.VITE_API_URL || "http://localhost:3001";
 const raw = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
 // AFTER:
-const raw = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const raw =
+  import.meta.env.VITE_API_URL ||
+  "https://doctor-booking-appointment-i137.onrender.com";
 ```
 
 ---

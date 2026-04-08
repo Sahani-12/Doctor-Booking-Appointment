@@ -5,7 +5,7 @@
 ### 1. Backend Running है?
 
 ```bash
-http://localhost:3001
+https://doctor-booking-appointment-i137.onrender.com
 ```
 
 ✅ देखो - should show: "Cannot GET /" (यह OK है, server चल रहा है)

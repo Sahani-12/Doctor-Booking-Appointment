@@ -3,7 +3,7 @@
 ## ✅ What We Know (All Working)
 
 ```
-✅ Backend running: http://localhost:3001 (port 3001)
+✅ Backend running: https://doctor-booking-appointment-i137.onrender.com (port 3001)
 ✅ Admin Panel running: http://localhost:5178 (port 5178)
 ✅ MongoDB connected: careconnect collection
 ✅ Data exists: 1 admin user in database
@@ -219,7 +219,7 @@ console.log("Token:", localStorage.getItem("adminToken"));
 console.log("Admin:", localStorage.getItem("admin"));
 
 // Test API
-fetch("http://localhost:3001/api/admin/users", {
+fetch("https://doctor-booking-appointment-i137.onrender.com/api/admin/users", {
   headers: { Authorization: `Bearer ${localStorage.getItem("adminToken")}` },
 })
   .then((r) => r.json())

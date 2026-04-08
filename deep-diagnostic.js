@@ -24,17 +24,20 @@ function checkWithoutToken() {
     console.log("   Expected: 401 Unauthorized");
 
     const req = http
-      .get("http://localhost:3001/api/admin/users", (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          console.log(`   ✓ Status: ${res.statusCode}`);
-          if (res.statusCode !== 200) {
-            console.log(`   ✓ Response: ${data.substring(0, 100)}`);
-          }
-          resolve();
-        });
-      })
+      .get(
+        "https://doctor-booking-appointment-i137.onrender.com/api/admin/users",
+        (res) => {
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => {
+            console.log(`   ✓ Status: ${res.statusCode}`);
+            if (res.statusCode !== 200) {
+              console.log(`   ✓ Response: ${data.substring(0, 100)}`);
+            }
+            resolve();
+          });
+        },
+      )
       .on("error", (err) => {
         console.log(`   ✗ Error: ${err.message}`);
         resolve();
@@ -51,7 +54,9 @@ function checkWithoutToken() {
 async function checkApiFormat() {
   console.log(`\n📍 TEST 2: API Endpoint Structure`);
   console.log(`   Backend Port: 3001`);
-  console.log(`   API Base URL: http://localhost:3001/api`);
+  console.log(
+    `   API Base URL: https://doctor-booking-appointment-i137.onrender.com/api`,
+  );
   console.log(`   Users Endpoint: /api/admin/users`);
   console.log(`   Doctors Endpoint: /api/admin/doctors`);
   console.log(
@@ -133,7 +138,7 @@ async function checkTokenHandling() {
               console.log(`\n   → Testing API with Bearer token`);
 
               const userReq = http.get(
-                "http://localhost:3001/api/admin/users",
+                "https://doctor-booking-appointment-i137.onrender.com/api/admin/users",
                 {
                   headers: {
                     Authorization: `Bearer ${response.token}`,
@@ -222,7 +227,7 @@ Based on the tests above, here's what to do:
 
 4️⃣  If .env is missing in frontend:
    → Create CareConnect-Admin/.env with:
-      VITE_API_URL=http://localhost:3001/api
+      VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 
 5️⃣  If API response format is wrong:
    → Backend returns: { data: [ ... ] }

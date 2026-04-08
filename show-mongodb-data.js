@@ -182,7 +182,9 @@ async function main() {
     console.log(`  └─ Others:      (Appointments, Transactions, etc.)`);
     console.log("");
     console.log(`  Database:     MongoDB Atlas (careconnect collection)`);
-    console.log(`  Backend:      http://localhost:3001 ✓`);
+    console.log(
+      `  Backend:      https://doctor-booking-appointment-i137.onrender.com ✓`,
+    );
     console.log(`  Admin Panel:  http://localhost:5178`);
     console.log("");
 

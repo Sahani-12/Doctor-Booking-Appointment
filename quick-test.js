@@ -21,7 +21,7 @@ async function test1_BackendRunning() {
     console.log("\n📍 TEST 1: Backend Running?");
 
     http
-      .get("http://localhost:3001", (res) => {
+      .get("https://doctor-booking-appointment-i137.onrender.com", (res) => {
         if (res.statusCode) {
           console.log("   ✅ Backend is RUNNING on port 3001");
           console.log(`   Status Code: ${res.statusCode}`);

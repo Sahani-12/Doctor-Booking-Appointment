@@ -5,7 +5,7 @@
  * Tests all enhanced user and doctor management features
  */
 
-const BASE_URL = "http://localhost:3001";
+const BASE_URL = "https://doctor-booking-appointment-i137.onrender.com";
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "your-token-here";
 
 const testResults = {

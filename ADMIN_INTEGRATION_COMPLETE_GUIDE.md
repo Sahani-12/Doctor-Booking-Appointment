@@ -185,7 +185,7 @@ RAZORPAY_KEY_ID=your_razorpay_key
 
 ```bash
 # Already configured in apiService.ts
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 ```
 
 ### 4.2 Database Setup
@@ -195,7 +195,7 @@ VITE_API_URL=http://localhost:3001/api
 **Option 1: Using Setup Endpoint**
 
 ```bash
-curl -X POST http://localhost:3001/api/auth/setup-admin \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/setup-admin \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@careconnect.com",
@@ -218,7 +218,7 @@ node seedAdminUser.js
 cd CareConnect-backend
 npm install
 npm start
-# Server runs on http://localhost:3001
+# Server runs on https://doctor-booking-appointment-i137.onrender.com
 ```
 
 **Terminal 2 - Admin Frontend**
@@ -259,7 +259,7 @@ Password: admin123
 **Test Admin Login Endpoint**:
 
 ```bash
-curl -X POST http://localhost:3001/api/auth/admin-login \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "admin@careconnect.com",
@@ -291,13 +291,13 @@ curl -X POST http://localhost:3001/api/auth/admin-login \
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN_HERE" \
-  http://localhost:3001/api/admin/dashboard
+  https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard
 ```
 
 **Without Token**:
 
 ```bash
-curl http://localhost:3001/api/admin/dashboard
+curl https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard
 # Returns: 401 Unauthorized
 ```
 
@@ -437,7 +437,7 @@ CareConnect-backend/
 **Solution**:
 
 1. Check backend `index.js` has `cors()` middleware
-2. Verify frontend API URL is `http://localhost:3001`
+2. Verify frontend API URL is `https://doctor-booking-appointment-i137.onrender.com`
 3. Ensure both services are running
 
 ### Issue 5: Dashboard Shows Empty Stats
@@ -514,7 +514,7 @@ npm run dev
 
 # Create admin user (choose one)
 # Option 1: Via API
-curl -X POST http://localhost:3001/api/auth/setup-admin \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/setup-admin \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@careconnect.com", "password": "admin123", "fullname": "Admin"}'
 

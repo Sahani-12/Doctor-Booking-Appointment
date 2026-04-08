@@ -2,7 +2,7 @@
 
 const http = require("http");
 
-const BASE_URL = "http://localhost:3001";
+const BASE_URL = "https://doctor-booking-appointment-i137.onrender.com";
 
 function makeRequest(method, path, body = null) {
   return new Promise((resolve, reject) => {

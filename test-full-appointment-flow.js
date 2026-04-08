@@ -14,7 +14,7 @@
 const http = require("http");
 const assert = require("assert");
 
-const BASE_URL = "http://localhost:3001/api";
+const BASE_URL = "https://doctor-booking-appointment-i137.onrender.com/api";
 
 // Test credentials (change these if needed)
 const TEST_USER_EMAIL = "user@test.com";

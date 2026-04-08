@@ -55,7 +55,7 @@ npm run dev
 └──────────────┬──────────────────────────┘
                │
                │ API Requests
-               │ (http://localhost:3001/api)
+               │ (https://doctor-booking-appointment-i137.onrender.com/api)
                ▼
 ┌─────────────────────────────────────────┐
 │     Backend Server (Node/Express)       │
@@ -97,7 +97,7 @@ node createAdminAtlas.js
 ### ✅ CareConnect-Admin/.env (Frontend)
 
 ```env
-VITE_API_URL=http://localhost:3001/api
+VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api
 VITE_APP_NAME=CareConnect Admin
 NODE_ENV=development
 ```
@@ -190,7 +190,7 @@ TOKEN_EXPIRES_IN=7d
 ### Test 1: Backend Health Check
 
 ```bash
-curl http://localhost:3001/
+curl https://doctor-booking-appointment-i137.onrender.com/
 ```
 
 Expected Response:
@@ -206,7 +206,7 @@ Expected Response:
 ### Test 2: Admin Login
 
 ```bash
-curl -X POST http://localhost:3001/api/auth/admin-login \
+curl -X POST https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@careconnect.com","password":"password"}'
 ```
@@ -214,7 +214,7 @@ curl -X POST http://localhost:3001/api/auth/admin-login \
 ### Test 3: Get Dashboard Data
 
 ```bash
-curl http://localhost:3001/api/admin/dashboard \
+curl https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

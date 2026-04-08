@@ -198,13 +198,13 @@ CareConnect-backend/.env
 └── JWT_SECRET=configured ✅
 
 CareConnect-User-main/.env
-└── VITE_API_URL=http://localhost:3001/api ✅
+└── VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api ✅
 
 CareConnect-Admin/.env
-└── VITE_API_URL=http://localhost:3001/api ✅
+└── VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api ✅
 
 CareConnectDoctors-main/.env
-└── VITE_API_URL=http://localhost:3001/api ✅
+└── VITE_API_URL=https://doctor-booking-appointment-i137.onrender.com/api ✅
 ```
 
 ---
@@ -245,7 +245,7 @@ CareConnectDoctors-main/.env
 ```bash
 cd CareConnect-backend
 npm start
-# Runs on http://localhost:3001
+# Runs on https://doctor-booking-appointment-i137.onrender.com
 ```
 
 ### Terminal 2: User App

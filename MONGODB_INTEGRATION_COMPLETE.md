@@ -19,7 +19,7 @@ Status: RUNNING - Ready to access
 ### ✅ Backend API
 
 ```
-Location: http://localhost:3001
+Location: https://doctor-booking-appointment-i137.onrender.com
 Framework: Express.js
 Status: RUNNING - Responding to requests
 MongoDB: Connected to Atlas
@@ -511,13 +511,13 @@ Overall:         ✅ FULLY OPERATIONAL
 
 ## Quick Access Links
 
-| Resource        | URL                          |
-| --------------- | ---------------------------- |
-| Admin Panel     | http://localhost:5178        |
-| Backend API     | http://localhost:3001        |
-| MongoDB Data    | Check in Admin Panel         |
-| Documentation   | MONGODB_CONNECTION_STATUS.md |
-| Data Flow Guide | MONGODB_DATA_FLOW_GUIDE.md   |
+| Resource        | URL                                                  |
+| --------------- | ---------------------------------------------------- |
+| Admin Panel     | http://localhost:5178                                |
+| Backend API     | https://doctor-booking-appointment-i137.onrender.com |
+| MongoDB Data    | Check in Admin Panel                                 |
+| Documentation   | MONGODB_CONNECTION_STATUS.md                         |
+| Data Flow Guide | MONGODB_DATA_FLOW_GUIDE.md                           |
 
 ---
 
