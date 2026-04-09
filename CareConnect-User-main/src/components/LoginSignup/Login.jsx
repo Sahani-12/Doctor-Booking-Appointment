@@ -134,7 +134,7 @@ const Login = () => {
         <div className="text-center mt-4">
           <p>
             Continue as Doctor?{" "}
-            <a href="http://localhost:5174">
+            <a href="https://doctor-booking-appointment-bsgv.vercel.app/">
               <button className="text-blue-600 hover:underline">Log in</button>
             </a>{" "}
           </p>
