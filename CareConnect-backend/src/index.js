@@ -14,15 +14,18 @@ const chatRoutes = require("./routes/chat");
 const videoRoutes = require("./routes/video");
 const notificationRoutes = require("./routes/notifications");
 const { notFound, errorHandler } = require("./middleware/error");
+const aiRoute = require("./routes/aiRoute");
 
 const app = express();
 
 // Middleware
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
+app.use("/api/ai", aiRoute);
 
 // Database connection
 const mongoURI = process.env.MONGO_URI;

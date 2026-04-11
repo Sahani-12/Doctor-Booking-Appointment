@@ -1,72 +1,89 @@
 import React, { useState, useRef, useEffect } from "react";
 import ChatImage from "../assets/Chat.png";
+import { getAIResponse } from "../utils/aiService";
 
 const Chat = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
+
   const chatRef = useRef(null);
   const bottomRef = useRef(null);
 
-  // Load from localStorage
+  // Load messages from localStorage
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("chatMessages")) || [];
     setMessages(stored);
   }, []);
 
-  // Save to localStorage
+  // Save messages and auto-scroll
   useEffect(() => {
     localStorage.setItem("chatMessages", JSON.stringify(messages));
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" }); // ✅ auto scroll
-  }, [messages]);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isTyping]);
 
-  const handleSend = () => {
+  // Close chat when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (chatRef.current && !chatRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
+
+  // Send message to AI
+  const handleSend = async () => {
     if (!message.trim()) return;
 
-    const newMsg = {
+    const userMessage = {
       text: message,
       time: new Date().toLocaleTimeString(),
       sender: "user",
     };
 
-    setMessages((prev) => [...prev, newMsg]);
+    setMessages((prev) => [...prev, userMessage]);
     setMessage("");
+    setIsTyping(true);
 
-    // Fake bot reply (optional)
-    setTimeout(() => {
+    try {
+      const aiReply = await getAIResponse(message);
+
+      const botMessage = {
+        text: aiReply,
+        time: new Date().toLocaleTimeString(),
+        sender: "bot",
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+    } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
-          text: "Thanks! We will help you shortly 😊",
+          text: "AI service is unavailable.",
           time: new Date().toLocaleTimeString(),
           sender: "bot",
         },
       ]);
-    }, 800);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleDelete = (index) => {
     setMessages(messages.filter((_, i) => i !== index));
   };
 
-  const handleClickOutside = (e) => {
-    if (chatRef.current && !chatRef.current.contains(e.target)) {
-      setIsOpen(false);
-    }
-  };
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen]);
-
   return (
     <div className="fixed bottom-6 right-6 z-50">
-
       {/* Floating Button */}
       <button onClick={() => setIsOpen(!isOpen)}>
         <img
@@ -84,7 +101,7 @@ const Chat = () => {
         >
           {/* Header */}
           <div className="flex justify-between items-center p-3 border-b">
-            <h3 className="font-semibold">Help Center</h3>
+            <h3 className="font-semibold">🤖 AI Medical Assistant</h3>
             <button onClick={() => setIsOpen(false)}>✖</button>
           </div>
 
@@ -100,9 +117,7 @@ const Chat = () => {
               <div
                 key={i}
                 className={`flex ${
-                  msg.sender === "user"
-                    ? "justify-end"
-                    : "justify-start"
+                  msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
                 <div
@@ -113,9 +128,7 @@ const Chat = () => {
                   }`}
                 >
                   <p>{msg.text}</p>
-                  <span className="text-[10px] opacity-70">
-                    {msg.time}
-                  </span>
+                  <span className="text-[10px] opacity-70">{msg.time}</span>
                 </div>
 
                 <button
@@ -126,6 +139,10 @@ const Chat = () => {
                 </button>
               </div>
             ))}
+
+            {isTyping && (
+              <p className="text-sm text-gray-500">AI is typing...</p>
+            )}
 
             <div ref={bottomRef}></div>
           </div>
