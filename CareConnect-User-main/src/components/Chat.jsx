@@ -52,29 +52,42 @@ const Chat = () => {
 
     setMessages((prev) => [...prev, userMessage]);
     setMessage("");
-    setIsTyping(true);
 
     try {
-      const aiReply = await getAIResponse(message);
+      const aiData = await getAIResponse(message);
 
+      // AI Reply
       const botMessage = {
-        text: aiReply,
+        text: aiData.reply,
         time: new Date().toLocaleTimeString(),
         sender: "bot",
       };
 
       setMessages((prev) => [...prev, botMessage]);
+
+      // Doctor Suggestions
+      if (aiData.doctors && aiData.doctors.length > 0) {
+        aiData.doctors.forEach((doctor) => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              text: `👨‍⚕️ Dr. ${doctor.name} (${doctor.specialization})
+Experience: ${doctor.experience} yrs | Fees: ₹${doctor.fees}`,
+              time: new Date().toLocaleTimeString(),
+              sender: "bot",
+            },
+          ]);
+        });
+      }
     } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
-          text: "AI service is unavailable.",
+          text: "AI service is currently unavailable.",
           time: new Date().toLocaleTimeString(),
           sender: "bot",
         },
       ]);
-    } finally {
-      setIsTyping(false);
     }
   };
 

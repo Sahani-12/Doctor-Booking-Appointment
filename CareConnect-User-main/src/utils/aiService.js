@@ -10,14 +10,14 @@ export const getAIResponse = async (message) => {
       body: JSON.stringify({ message }),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP Error: ${response.status}`);
-    }
-
     const data = await response.json();
-    return data.reply || "No response from AI.";
+    return data; // पूरा object लौटाएँ
   } catch (error) {
     console.error("AI Service Error:", error);
-    return "AI service is currently unavailable.";
+    return {
+      success: false,
+      reply: "AI service is currently unavailable.",
+      doctors: [],
+    };
   }
 };

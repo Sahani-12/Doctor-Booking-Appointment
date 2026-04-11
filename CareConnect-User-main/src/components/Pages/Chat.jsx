@@ -52,29 +52,57 @@ const Chat = () => {
 
     setMessages((prev) => [...prev, userMessage]);
     setMessage("");
-    setIsTyping(true);
+
+    // Typing Indicator
+    setMessages((prev) => [
+      ...prev,
+      {
+        text: "Typing...",
+        sender: "bot",
+        time: new Date().toLocaleTimeString(),
+      },
+    ]);
 
     try {
-      const aiReply = await getAIResponse(message);
+      const aiData = await getAIResponse(message);
 
-      const botMessage = {
-        text: aiReply,
-        time: new Date().toLocaleTimeString(),
-        sender: "bot",
-      };
+      // Remove typing indicator
+      setMessages((prev) => prev.slice(0, -1));
 
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
+      // AI Reply
       setMessages((prev) => [
         ...prev,
         {
-          text: "⚠️ AI service is unavailable.",
-          time: new Date().toLocaleTimeString(),
+          text: aiData.reply,
           sender: "bot",
+          time: new Date().toLocaleTimeString(),
         },
       ]);
-    } finally {
-      setIsTyping(false);
+
+      // Doctor Suggestions
+      if (aiData.doctors.length > 0) {
+        aiData.doctors.forEach((doctor) => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              text: `👨‍⚕️ Dr. ${doctor.name} (${doctor.specialization})
+Experience: ${doctor.experience} yrs | Fees: ₹${doctor.fees}`,
+              sender: "bot",
+              time: new Date().toLocaleTimeString(),
+            },
+          ]);
+        });
+      }
+    } catch (error) {
+      setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: "AI service is currently unavailable.",
+          sender: "bot",
+          time: new Date().toLocaleTimeString(),
+        },
+      ]);
     }
   };
 
@@ -118,9 +146,7 @@ const Chat = () => {
               <div
                 key={i}
                 className={`flex ${
-                  msg.sender === "user"
-                    ? "justify-end"
-                    : "justify-start"
+                  msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
                 <div
