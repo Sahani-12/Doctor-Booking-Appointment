@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+//Schema for application settings and configurations
 
 const settingsSchema = new mongoose.Schema(
   {
