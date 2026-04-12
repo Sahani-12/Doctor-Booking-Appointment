@@ -1,49 +1,73 @@
-
-import React from 'react';
-import styled from 'styled-components';
+import React from "react";
+import styled from "styled-components";
 
 const Loader = () => {
   return (
     <StyledWrapper>
-        <div className="loader-container">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 384" className="loader">
-                <circle r={176} cy={192} cx={192} strokeWidth={32} fill="transparent" pathLength={360} className="active" />
-                <circle r={176} cy={192} cx={192} strokeWidth={32} fill="transparent" pathLength={360} className="track" />
-            </svg>
-        </div>
-      
+      <div className="loader-container">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 384 384"
+          className="loader"
+        >
+          <circle
+            r={176}
+            cy={192}
+            cx={192}
+            strokeWidth={32}
+            fill="transparent"
+            pathLength={360}
+            className="active"
+          />
+          <circle
+            r={176}
+            cy={192}
+            cx={192}
+            strokeWidth={32}
+            fill="transparent"
+            pathLength={360}
+            className="track"
+          />
+        </svg>
+      </div>
     </StyledWrapper>
   );
-}
+};
 
 const StyledWrapper = styled.div`
-  /* Inspired by: m3.material.io/components/progress-indicators/overview */
+  /* Container */
   .loader-container {
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 1rem;
   }
+
+  /* Loader SVG */
   .loader {
-    
     width: 32px;
-    /* Subpixels get cut off */
     overflow: visible;
     transform: rotate(-90deg);
     transform-origin: center;
 
-    --active: #a6abad;
-    --track: #ededed;
+    /* Light Theme Colors */
+    --active: hsl(221, 83%, 53%); /* Blue */
+    --track: hsl(214, 32%, 91%); /* Light Gray */
 
     --duration: 8s;
-
     animation: spin 2s linear infinite;
+  }
+
+  /* Dark Theme Support */
+  .dark & .loader {
+    --active: hsl(217, 91%, 60%);
+    --track: hsl(217, 33%, 17%);
   }
 
   @keyframes spin {
     0% {
       rotate: 0deg;
     }
-
     100% {
       rotate: 360deg;
     }
@@ -54,6 +78,13 @@ const StyledWrapper = styled.div`
     stroke-linecap: round;
     stroke-dashoffset: 360;
     animation: active-animation var(--duration) ease-in-out infinite;
+  }
+
+  .track {
+    stroke: var(--track);
+    stroke-linecap: round;
+    stroke-dashoffset: 360;
+    animation: track-animation var(--duration) ease-in-out infinite;
   }
 
   @keyframes active-animation {
@@ -92,13 +123,6 @@ const StyledWrapper = styled.div`
     }
   }
 
-  .track {
-    stroke: var(--track);
-    stroke-linecap: round;
-    stroke-dashoffset: 360;
-    animation: track-animation var(--duration) ease-in-out infinite;
-  }
-
   @keyframes track-animation {
     0% {
       stroke-dasharray: 0 20 320 40 320 40;
@@ -133,6 +157,7 @@ const StyledWrapper = styled.div`
     100% {
       stroke-dasharray: 0 380 320 40 320 40;
     }
-  }`;
+  }
+`;
 
 export default Loader;

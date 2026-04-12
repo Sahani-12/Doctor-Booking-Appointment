@@ -1,16 +1,34 @@
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, NavLink } from "react-router-dom";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import logo from "../assets/logo.png";
-import { NavLink } from "react-router-dom";
 
 const Navbar = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
   const [userName, setUserName] = useState(() => {
     const storedUser = sessionStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser).fullname : null;
   });
+
+  // 🌙 Theme State
+  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+
   const navigate = useNavigate();
+
+  // Apply theme on load/change
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   const toggleNavbar = () => {
     setMobileDrawerOpen(!mobileDrawerOpen);
@@ -19,48 +37,72 @@ const Navbar = () => {
   const navLinks = [
     { name: "Find Doctor", path: "/doctor-search" },
     { name: "Consult", path: "/consult" },
+    { name: "AI Checker", path: "/symptom-checker" },
     { name: "Get Help", path: "/help" },
   ];
 
   return (
-    <nav className="sticky top-0 left-0 right-0 z-50 py-3 backdrop-blur-sm bg-white/10 border-b border-[#f4f4f4]">
+    <nav className="sticky top-0 left-0 right-0 z-50 py-3 backdrop-blur-sm bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700 transition-all">
       <div className="container px-4 mx-auto relative lg:text-sm">
         <div className="flex items-center">
+          {/* Logo */}
           <div
             className="cursor-pointer flex items-center flex-shrink-0"
             onClick={() => navigate("/")}
           >
             <img className="h-10 w-10 mr-2" src={logo} alt="Logo" />
-            <span className="text-xl tracking-tight">CareConnect</span>
+            <span className="text-xl tracking-tight font-semibold dark:text-white">
+              CareConnect
+            </span>
           </div>
 
-          {/* Desktop nav links - hidden on small screens */}
+          {/* Desktop Nav Links */}
           <div className="hidden lg:flex space-x-6 ml-8">
             {navLinks.map((link) => (
-              <Link
+              <NavLink
                 key={link.name}
                 to={link.path}
-                className="text-l text-gray-800 hover:text-orange-600 transition-colors"
+                className={({ isActive }) =>
+                  `transition-colors ${
+                    isActive
+                      ? "text-orange-600 font-semibold"
+                      : "text-gray-800 dark:text-gray-200 hover:text-orange-600"
+                  }`
+                }
               >
                 {link.name}
-              </Link>
+              </NavLink>
             ))}
           </div>
 
+          {/* Right Section */}
           <div className="flex-1 flex justify-end items-center space-x-4">
-            {/* <span className="text-gray-600 hidden lg:block cursor-pointer" onClick={() => navigate("/user-dashboard/:username")}>
-            {userName ? `Hi, ` + userName : "Welcome!"}
-            </span> */}
+            {/* Greeting */}
             <span
-              className="text-gray-600 hidden lg:block cursor-pointer"
+              className="text-gray-600 dark:text-gray-300 hidden lg:block cursor-pointer"
               onClick={() => {
-                if (userName)
+                if (userName) {
                   navigate(`/user-dashboard/${encodeURIComponent(userName)}`);
+                }
               }}
             >
               {userName ? `Hi, ${userName}` : "Welcome!"}
             </span>
 
+            {/* 🌙 Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:scale-110 transition"
+              title="Toggle Theme"
+            >
+              {theme === "dark" ? (
+                <Sun size={18} className="text-yellow-400" />
+              ) : (
+                <Moon size={18} className="text-gray-700" />
+              )}
+            </button>
+
+            {/* Auth Buttons */}
             {!userName ? (
               <>
                 <button
@@ -90,12 +132,12 @@ const Navbar = () => {
               </button>
             )}
 
-            {/* Hamburger button - visible on small screens, right corner */}
+            {/* Mobile Menu Button */}
             <div className="lg:hidden ml-4">
               <button
                 onClick={toggleNavbar}
                 aria-label="Toggle navigation menu"
-                className="text-gray-800 hover:text-orange-600 focus:outline-none"
+                className="text-gray-800 dark:text-gray-200 hover:text-orange-600"
               >
                 {mobileDrawerOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
@@ -103,15 +145,15 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile drawer */}
+        {/* 📱 Mobile Drawer */}
         {mobileDrawerOpen && (
-          <div className="fixed right-0 z-20 bg-white w-full p-8 flex flex-col justify-center items-start lg:hidden shadow-lg">
+          <div className="fixed right-0 z-20 bg-white dark:bg-gray-900 w-full p-8 flex flex-col justify-center items-start lg:hidden shadow-lg">
             <ul className="w-full space-y-4 mb-6">
               {navLinks.map((link) => (
                 <li key={link.name} className="w-full">
                   <Link
                     to={link.path}
-                    className="block py-3 text-gray-600 hover:text-orange-600 transition-colors"
+                    className="block py-3 text-gray-600 dark:text-gray-300 hover:text-orange-600"
                     onClick={toggleNavbar}
                   >
                     {link.name}
@@ -120,46 +162,50 @@ const Navbar = () => {
               ))}
             </ul>
 
-            <div className="w-full flex flex-col space-y-4">
-              <div className="text-left py-2 text-gray-600 w-full">
-                {userName ? `Hi, ` + userName : "Welcome!"}
-              </div>
-              {!userName ? (
-                <>
-                  <button
-                    onClick={() => {
-                      navigate("/login");
-                      toggleNavbar();
-                    }}
-                    className="w-full py-3 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50 transition-colors"
-                  >
-                    Login
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate("/signup");
-                      toggleNavbar();
-                    }}
-                    className="w-full bg-gradient-to-r text-white from-orange-500 to-orange-700 py-3 rounded-md hover:from-orange-600 hover:to-orange-800 transition-colors"
-                  >
-                    Sign Up
-                  </button>
-                </>
-              ) : (
+            {/* Mobile Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="mb-4 flex items-center gap-2 text-gray-700 dark:text-gray-200"
+            >
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              Toggle Theme
+            </button>
+
+            {!userName ? (
+              <>
                 <button
                   onClick={() => {
-                    sessionStorage.removeItem("user");
-                    sessionStorage.removeItem("token");
-                    setUserName(null);
+                    navigate("/login");
                     toggleNavbar();
-                    navigate("/");
                   }}
-                  className="w-full bg-red-500 text-white py-3 rounded-md hover:bg-red-600 transition-colors"
+                  className="w-full py-3 border border-orange-500 text-orange-500 rounded-md hover:bg-orange-50"
                 >
-                  Logout
+                  Login
                 </button>
-              )}
-            </div>
+                <button
+                  onClick={() => {
+                    navigate("/signup");
+                    toggleNavbar();
+                  }}
+                  className="w-full bg-gradient-to-r text-white from-orange-500 to-orange-700 py-3 rounded-md"
+                >
+                  Sign Up
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  sessionStorage.removeItem("user");
+                  sessionStorage.removeItem("token");
+                  setUserName(null);
+                  toggleNavbar();
+                  navigate("/");
+                }}
+                className="w-full bg-red-500 text-white py-3 rounded-md hover:bg-red-600"
+              >
+                Logout
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -168,123 +214,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-// import React, { useState, useEffect } from "react";
-// import { Link, useNavigate } from "react-router-dom";
-// import { Menu, X } from "lucide-react";
-// import logo from "../assets/logo1.png";
-// import { navItems } from "../constants/index";
-
-// const Navbar = () => {
-//   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-//   const [userName, setUserName] = useState(() => {
-//     const storedUser = localStorage.getItem("user");
-//     return storedUser ? JSON.parse(storedUser).fullname : null;
-//   });
-//   const navigate = useNavigate();
-
-//   const toggleNavbar = () => {
-//     setMobileDrawerOpen(!mobileDrawerOpen);
-//   };
-
-//   return (
-//     <nav className="sticky top-0 z-50 py-3 backdrop-blur-sm border-b border-[#f4f4f4]">
-//       <div className="container px-4 mx-auto relative lg:text-sm">
-//         <div className="flex justify-between items-center">
-//           <div className="cursor-pointer flex items-center flex-shrink-0"
-//           onClick={() => navigate("/")}>
-//             <img className="h-10 w-10 mr-2" src={logo} alt="Logo" />
-//             <span className="text-xl tracking-tight">Medconnect</span>
-//           </div>
-
-//           <ul className="hidden lg:flex ml-2 space-x-6">
-//             {navItems.map((item, index) => (
-//               <li key={index}>
-//                 <a href={item.href}>{item.label}</a>
-//               </li>
-//             ))}
-//           </ul>
-
-//           <div className="hidden lg:flex justify-center space-x-12 items-center">
-//             <div className="hidden lg:flex justify-center space-x-4 items-center">
-//               <ul onClick={() => navigate("/user-dashboard/:username")} className="cursor-pointer">
-//                 {userName ? userName : "Research"}
-//               </ul>
-//               {!userName ? (
-//                 <button
-//                   onClick={() => navigate("/signup")}
-//                   className="bg-gradient-to-r text-white from-orange-500 to-orange-800 py-2 px-3 rounded-md"
-//                 >
-//                   Create an account
-//                 </button>
-//               ) : (
-//                 <button
-//                   onClick={() => {
-
-//                     localStorage.removeItem("user");
-//                     setUserName(null);
-
-//                   }}
-//                   className="bg-red-500 text-white py-2 px-3 rounded-md"
-//                 >
-//                   Logout
-//                 </button>
-//               )}
-//             </div>
-//           </div>
-
-//           <div className="lg:hidden md:flex flex-col justify-end">
-//             <button onClick={toggleNavbar}>
-//               {mobileDrawerOpen ? <X /> : <Menu />}
-//             </button>
-//           </div>
-//         </div>
-
-//         {mobileDrawerOpen && (
-//           <div className="fixed right-0 z-20 bg-white w-full p-12 flex flex-col justify-center items-center lg:hidden">
-//             <ul>
-//               {navItems.map((item, index) => (
-//                 <li key={index} className="py-4">
-//                   <a href={item.href}>{item.label}</a>
-//                 </li>
-//               ))}
-
-//               <li>Hello</li>
-//             </ul>
-//             <div className="flex space-x-6">
-//               {!userName ? (
-//                 <>
-//                   <button
-//                     onClick={() => navigate("/login")}
-//                     className="py-2 px-3 border rounded-md"
-//                   >
-//                     Sign In
-//                   </button>
-//                   <button
-//                     onClick={() => navigate("/signup")}
-//                     className="bg-gradient-to-r text-white from-orange-500 to-orange-800 py-2 px-3 rounded-md"
-//                   >
-//                     Create an account
-//                   </button>
-//                 </>
-//               ) : (
-//                 <button
-//                   onClick={() => {
-//                     localStorage.removeItem("user");
-//                     setUserName(null);
-//                     navigate("/login");
-//                   }}
-//                   className="bg-gradient-to-r text-white from-orange-500 to-orange-800 py-2 px-3 rounded-md"
-//                 >
-//                   Logout
-//                 </button>
-//               )}
-//             </div>
-//           </div>
-//         )}
-//       </div>
-//     </nav>
-//   );
-// };
-
-// export default Navbar;

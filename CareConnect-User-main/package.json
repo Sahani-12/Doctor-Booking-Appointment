@@ -19,7 +19,7 @@
     "@stripe/react-stripe-js": "^2.1.0",
     "@stripe/stripe-js": "^1.50.0",
     "@zegocloud/zego-uikit-prebuilt": "^2.14.3-beta",
-    "axios": "^1.8.4",
+    "axios": "^1.15.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
@@ -35,7 +35,7 @@
     "react-pdf": "^9.2.1",
     "react-router-dom": "^7.4.0",
     "socket.io-client": "^4.5.4",
-    "styled-components": "^6.1.16",
+    "styled-components": "^6.4.0",
     "tailwind-merge": "^3.2.0",
     "tailwindcss-animate": "^1.0.7"
   },

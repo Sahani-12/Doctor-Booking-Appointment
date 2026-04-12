@@ -15,6 +15,8 @@ const videoRoutes = require("./routes/video");
 const notificationRoutes = require("./routes/notifications");
 const { notFound, errorHandler } = require("./middleware/error");
 const aiRoute = require("./routes/aiRoute");
+// const symptomRoutes = require("./routes/symptomRoutes.js");
+const symptomRoutes = require("./routes/symptomRoutes");
 
 const app = express();
 
@@ -26,7 +28,7 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
 app.use("/api/ai", aiRoute);
-
+app.use("/api/symptoms", symptomRoutes);
 // Database connection
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI || mongoURI.includes("xxx")) {

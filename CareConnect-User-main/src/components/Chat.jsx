@@ -52,11 +52,11 @@ const Chat = () => {
 
     setMessages((prev) => [...prev, userMessage]);
     setMessage("");
+    setIsTyping(true);
 
     try {
       const aiData = await getAIResponse(message);
 
-      // AI Reply
       const botMessage = {
         text: aiData.reply,
         time: new Date().toLocaleTimeString(),
@@ -83,11 +83,13 @@ Experience: ${doctor.experience} yrs | Fees: ₹${doctor.fees}`,
       setMessages((prev) => [
         ...prev,
         {
-          text: "AI service is currently unavailable.",
+          text: "⚠️ AI service is currently unavailable.",
           time: new Date().toLocaleTimeString(),
           sender: "bot",
         },
       ]);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -102,7 +104,7 @@ Experience: ${doctor.experience} yrs | Fees: ₹${doctor.fees}`,
         <img
           src={ChatImage}
           alt="chat"
-          className="w-14 h-14 rounded-full shadow-lg"
+          className="w-14 h-14 rounded-full shadow-lg border border-border"
         />
       </button>
 
@@ -110,18 +112,18 @@ Experience: ${doctor.experience} yrs | Fees: ₹${doctor.fees}`,
       {isOpen && (
         <div
           ref={chatRef}
-          className="mt-2 w-80 bg-white rounded-xl shadow-lg border flex flex-col"
+          className="mt-2 w-80 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col"
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-3 border-b">
+          <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700 bg-blue-500 text-white rounded-t-xl">
             <h3 className="font-semibold">🤖 AI Medical Assistant</h3>
             <button onClick={() => setIsOpen(false)}>✖</button>
           </div>
 
           {/* Messages */}
-          <div className="h-60 overflow-y-auto p-3 space-y-2">
+          <div className="h-60 overflow-y-auto p-3 space-y-2 bg-white dark:bg-gray-900">
             {messages.length === 0 && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 👋 Hi! How can we help you?
               </p>
             )}
@@ -130,23 +132,27 @@ Experience: ${doctor.experience} yrs | Fees: ₹${doctor.fees}`,
               <div
                 key={i}
                 className={`flex ${
-                  msg.sender === "user" ? "justify-end" : "justify-start"
+                  msg.sender === "user"
+                    ? "justify-end"
+                    : "justify-start"
                 }`}
               >
                 <div
                   className={`p-2 rounded-lg max-w-[70%] text-sm ${
                     msg.sender === "user"
                       ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-black"
+                      : "bg-gray-200 dark:bg-gray-700 text-black dark:text-white"
                   }`}
                 >
-                  <p>{msg.text}</p>
-                  <span className="text-[10px] opacity-70">{msg.time}</span>
+                  <p className="whitespace-pre-line">{msg.text}</p>
+                  <span className="text-[10px] opacity-70 block text-right">
+                    {msg.time}
+                  </span>
                 </div>
 
                 <button
                   onClick={() => handleDelete(i)}
-                  className="ml-1 text-xs text-red-400"
+                  className="ml-1 text-xs text-red-400 hover:text-red-600"
                 >
                   ❌
                 </button>
@@ -154,25 +160,27 @@ Experience: ${doctor.experience} yrs | Fees: ₹${doctor.fees}`,
             ))}
 
             {isTyping && (
-              <p className="text-sm text-gray-500">AI is typing...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                AI is typing...
+              </p>
             )}
 
             <div ref={bottomRef}></div>
           </div>
 
           {/* Input */}
-          <div className="flex p-2 border-t">
+          <div className="flex p-2 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <input
               type="text"
-              className="flex-1 border rounded-md px-2 py-1 text-sm"
-              placeholder="Type message..."
+              className="flex-1 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-800 dark:text-white rounded-md px-2 py-1 text-sm focus:outline-none"
+              placeholder="Describe your symptoms..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
             />
             <button
               onClick={handleSend}
-              className="ml-2 bg-blue-500 text-white px-3 rounded"
+              className="ml-2 bg-blue-500 hover:bg-blue-600 text-white px-3 rounded"
             >
               Send
             </button>

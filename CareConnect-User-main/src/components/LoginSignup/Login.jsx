@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Loader from "../../ui/Loader1";
@@ -23,18 +23,22 @@ const Login = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-        credentials: "include", // Important for cookies
+        credentials: "include",
       });
 
       const data = await response.json();
+
       if (response.ok && data.success) {
         const user = data.data.user || data.data;
         const token = data.data.token;
-        sessionStorage.setItem("user", JSON.stringify(user)); // Store user details in session only
-        sessionStorage.setItem("token", token); // Store token in session only
+
+        sessionStorage.setItem("user", JSON.stringify(user));
+        sessionStorage.setItem("token", token);
+
         const userName = user.fullname
           ? encodeURIComponent(user.fullname)
           : "profile";
+
         navigate(`/user-dashboard/${userName}`);
       } else {
         alert(data.message || data.error || "Login failed");
@@ -43,28 +47,38 @@ const Login = () => {
       console.error("Error:", error);
       alert("Something went wrong");
     }
+
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 mt-11 mb-11">
-      <div className="ring-1 ring-gray-300 w-full max-w-lg bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Login
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-gray-900 dark:to-gray-950 transition-colors duration-300">
+      {/* Login Card */}
+      <div className="w-full max-w-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl p-8 backdrop-blur-lg">
+        {/* Heading */}
+        <h1 className="text-3xl font-bold text-center text-gray-800 dark:text-white mb-2">
+          Welcome Back 👋
         </h1>
+        <p className="text-center text-gray-500 dark:text-gray-400 mb-6">
+          Login to your CareConnect account
+        </p>
 
+        {/* Form */}
         <form className="space-y-5" onSubmit={handleSubmit}>
+          {/* Email */}
           <input
-            className="w-full p-3 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-gray-800 dark:text-white placeholder-gray-400"
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="Email Address"
             onChange={handleChange}
             required
           />
+
+          {/* Password */}
           <div className="relative">
             <input
-              className="w-full p-3 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+              className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 pr-10 text-gray-800 dark:text-white placeholder-gray-400"
               type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
@@ -73,46 +87,31 @@ const Login = () => {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-3 flex items-center"
+              className="absolute inset-y-0 right-3 flex items-center text-gray-500 dark:text-gray-400"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeSlashIcon className="w-5 h-5 text-gray-600" />
+                <EyeSlashIcon className="w-5 h-5" />
               ) : (
-                <EyeIcon className="w-5 h-5 text-gray-600" />
+                <EyeIcon className="w-5 h-5" />
               )}
             </button>
           </div>
 
-          {/* <button 
-            type="submit" 
-            className={`w-full py-3 rounded-lg font-medium text-white ${
-              loading ? "bg-gradient-to-r from-orange-500 to-red-800 cursor-not-allowed" : "bg-gradient-to-r from-orange-500 to-red-800"
-            }`}
-            disabled={loading}
-          >
-             {loading ? (
-    <>
-      <Loader />
-      <span>Logging in...</span>
-    </>
-  ) : (
-    "Login"
-  )}
-          </button> */}
+          {/* Login Button */}
           <button
             type="submit"
-            className={`w-full py-3 rounded-lg font-medium text-white flex items-center justify-center gap-2 ${
+            className={`w-full py-3 rounded-lg font-medium text-white flex items-center justify-center gap-2 transition ${
               loading
-                ? "bg-gray-300 text-black cursor-not-allowed"
-                : "bg-gradient-to-r from-orange-500 to-red-800"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-gradient-to-r from-orange-500 to-red-600 hover:opacity-90"
             }`}
             disabled={loading}
           >
             {loading ? (
               <>
                 <Loader />
-                <span>Logging in</span>
+                <span>Logging in...</span>
               </>
             ) : (
               "Login"
@@ -120,34 +119,43 @@ const Login = () => {
           </button>
         </form>
 
-        <div className="text-center mt-4">
-          <p>
+        {/* Signup */}
+        <div className="text-center mt-6 text-sm">
+          <p className="text-gray-600 dark:text-gray-400">
             Don't have an account?{" "}
             <button
               onClick={() => navigate("/signup")}
-              className="text-blue-600 hover:underline"
+              className="text-orange-600 hover:underline font-medium"
             >
               Sign Up
             </button>
           </p>
         </div>
-        <div className="text-center mt-4">
-          <p>
+
+        {/* Doctor Login */}
+        <div className="text-center mt-3 text-sm">
+          <p className="text-gray-600 dark:text-gray-400">
             Continue as Doctor?{" "}
-            <a href="https://doctor-booking-appointment-bsgv.vercel.app/">
-              <button className="text-blue-600 hover:underline">Log in</button>
-            </a>{" "}
+            <a
+              href="https://doctor-booking-appointment-bsgv.vercel.app/"
+              className="text-blue-600 hover:underline font-medium"
+            >
+              Log in
+            </a>
           </p>
-          <p></p>
         </div>
-        <div className="text-center mt-4">
-          <p>
+
+        {/* Admin Login */}
+        <div className="text-center mt-2 text-sm">
+          <p className="text-gray-600 dark:text-gray-400">
             Continue as Admin?{" "}
-            <a href="https://doctor-booking-appointment-fd5x.vercel.app/">
-              <button className="text-blue-600 hover:underline">Log in</button>
-            </a>{" "}
+            <a
+              href="https://doctor-booking-appointment-fd5x.vercel.app/"
+              className="text-blue-600 hover:underline font-medium"
+            >
+              Log in
+            </a>
           </p>
-          <p></p>
         </div>
       </div>
     </div>

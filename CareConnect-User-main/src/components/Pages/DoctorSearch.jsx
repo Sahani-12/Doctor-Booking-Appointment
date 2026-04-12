@@ -1,7 +1,7 @@
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import DocterCard from "../../ui/Cards/DoctorsList";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import { useEffect, useState, useRef, useCallback } from "react";
 import axios from "axios";
 import BASE_URL from "@/constants/api";
@@ -10,12 +10,17 @@ import BottomLoader from "../../ui/DoctorsPageLoader2";
 
 const DoctorSearch = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // 🔍 AI Symptom Checker se aane wala specialization
+  const specializationFromURL = searchParams.get("specialization") || "";
+
   const searchTermFromRoute = location.state?.searchTerm || "";
 
   const [doctors, setDoctors] = useState([]);
   const [searchTerm, setSearchTerm] = useState(searchTermFromRoute);
-  const [cityFilter, setcityFilter] = useState("");
-  const [specialization, setspecialization] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [specialization, setSpecialization] = useState(specializationFromURL);
   const [language, setLanguage] = useState("");
 
   const [page, setPage] = useState(1);
@@ -24,7 +29,7 @@ const DoctorSearch = () => {
 
   const observer = useRef();
 
-  // 🔥 Fetch API
+  // 🔥 Fetch Doctors API
   const fetchDoctors = async (pageNum = 1, append = false) => {
     try {
       setLoading(true);
@@ -40,11 +45,11 @@ const DoctorSearch = () => {
         params,
       });
 
-      const newDoctors = response.data.data || [];
+      const newDoctors = response.data?.data || [];
 
       setDoctors((prev) => (append ? [...prev, ...newDoctors] : newDoctors));
 
-      setHasMore(pageNum < response.data.pagination.totalPages);
+      setHasMore(pageNum < (response.data?.pagination?.totalPages || 1));
     } catch (err) {
       console.error("Error fetching doctors:", err);
     } finally {
@@ -52,7 +57,14 @@ const DoctorSearch = () => {
     }
   };
 
-  // 🔄 Filters change
+  // 🔄 AI se specialization aane par filter update kare
+  useEffect(() => {
+    if (specializationFromURL) {
+      setSpecialization(specializationFromURL);
+    }
+  }, [specializationFromURL]);
+
+  // 🔄 Filters change hone par data reload kare
   useEffect(() => {
     setPage(1);
     fetchDoctors(1, false);
@@ -83,21 +95,34 @@ const DoctorSearch = () => {
     [loading, hasMore],
   );
 
-  const filteredDoctors = doctors;
+  // 🧠 Specialization List
+  const specializationsList = [
+    "General Physician",
+    "Cardiologist",
+    "Neurologist",
+    "Dermatologist",
+    "Pediatrician",
+    "Orthopedic",
+    "Gynecologist",
+    "Pulmonologist",
+    "ENT Specialist",
+    "Psychiatrist",
+    "Urologist",
+  ];
 
   return (
-    <div className="bg-[#f4f4f4] min-h-screen">
+    <div className="bg-background text-foreground min-h-screen transition-colors duration-300">
       <Navbar initialsearchTerm={searchTermFromRoute} />
 
       <div className="max-w-7xl mx-auto pt-24 px-4">
         {/* 🔍 Search Bar */}
-        <div className="bg-white shadow-md p-4 rounded-xl flex flex-wrap gap-3">
+        <div className="bg-card text-card-foreground shadow-md p-4 rounded-xl flex flex-wrap gap-3 border border-border">
           <input
             type="text"
             placeholder="📍 City..."
             value={cityFilter}
-            onChange={(e) => setcityFilter(e.target.value)}
-            className="px-4 py-2 rounded-lg border w-full sm:w-[200px] focus:outline-none"
+            onChange={(e) => setCityFilter(e.target.value)}
+            className="px-4 py-2 rounded-lg border border-input bg-background text-foreground w-full sm:w-[200px] focus:outline-none focus:ring-2 focus:ring-primary"
           />
 
           <input
@@ -105,7 +130,7 @@ const DoctorSearch = () => {
             placeholder="Search doctor..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="flex-1 px-4 py-2 rounded-lg border focus:outline-none"
+            className="flex-1 px-4 py-2 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
 
           <input
@@ -113,48 +138,54 @@ const DoctorSearch = () => {
             placeholder="Language..."
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="px-4 py-2 rounded-lg border w-full sm:w-[200px] focus:outline-none"
+            className="px-4 py-2 rounded-lg border border-input bg-background text-foreground w-full sm:w-[200px] focus:outline-none focus:ring-2 focus:ring-primary"
           />
         </div>
 
-        {/* 🧠 Specialization */}
+        {/* 🧠 Specialization Filters */}
         <div className="flex gap-3 mt-4 flex-wrap">
-          {["Cardiologist", "Neurologist", "Dermatologist", "Pediatrician"].map(
-            (spec) => (
-              <button
-                key={spec}
-                onClick={() =>
-                  setspecialization(specialization === spec ? "" : spec)
-                }
-                className={`px-4 py-1 rounded-full text-sm transition ${
-                  specialization === spec
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 hover:bg-gray-300"
-                }`}
-              >
-                {spec}
-              </button>
-            ),
-          )}
+          {specializationsList.map((spec) => (
+            <button
+              key={spec}
+              onClick={() =>
+                setSpecialization(specialization === spec ? "" : spec)
+              }
+              className={`px-4 py-1 rounded-full text-sm transition ${
+                specialization === spec
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "bg-muted text-muted-foreground hover:bg-accent"
+              }`}
+            >
+              {spec}
+            </button>
+          ))}
         </div>
 
         {/* 📋 Doctor List */}
         <div className="pt-6">
-          <h1 className="text-blue-600 text-lg mb-4">
+          <h1 className="text-primary text-lg mb-4">
             Showing results for{" "}
             <span className="font-bold">{searchTerm || "All Doctors"}</span>,
             city: <span className="font-bold">{cityFilter || "India"}</span>
+            {specialization && (
+              <>
+                , specialization:{" "}
+                <span className="font-bold text-green-600">
+                  {specialization}
+                </span>
+              </>
+            )}
           </h1>
 
-          {/* 🔥 GRID FIXED */}
+          {/* 🔥 Doctors Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {filteredDoctors.length === 0 && !loading ? (
-              <div className="col-span-full text-center text-gray-500 py-16">
+            {doctors.length === 0 && !loading ? (
+              <div className="col-span-full text-center text-muted-foreground py-16">
                 No doctors found. Try changing filters.
               </div>
             ) : (
-              filteredDoctors.map((doctor, index) => {
-                if (filteredDoctors.length === index + 1) {
+              doctors.map((doctor, index) => {
+                if (doctors.length === index + 1) {
                   return (
                     <div key={doctor._id} ref={lastDoctorRef}>
                       <DocterCard doctor={doctor} />
@@ -182,8 +213,8 @@ const DoctorSearch = () => {
 
           {/* End Message */}
           {!loading && !hasMore && (
-            <div className="text-center text-gray-500 py-6">
-              <hr className="mb-2" />
+            <div className="text-center text-muted-foreground py-6">
+              <hr className="mb-2 border-border" />
               <p>No more results to show</p>
             </div>
           )}

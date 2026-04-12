@@ -13,28 +13,31 @@ import Consult from "./components/Pages/Consult";
 import Help from "./components/Pages/Help";
 import About from "./components/Pages/About";
 import Services from "./components/Pages/Services";
+import SymptomChecker from "./components/Pages/SymptomChecker";
 
 const AppRoutes = () => {
   return (
-    <>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/doctor-search" element={<DoctorSearch />} />
-        <Route path="/user-dashboard/:username" element={<UserDashboard />} />
-        <Route path="/appointment" element={<AppointmentSchedule />} />
-        <Route path="/qr-code-sharing" element={<ShareQr />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/doctors-page/:id" element={<DoctorProfile />} />
-        <Route path="/User-page/:id" element={<UserProfile />} />
-        <Route path="/video" element={<VideoConfrence />} />
-        <Route path="/consult" element={<Consult />} />
-        <Route path="/help" element={<Help />} />
-      </Routes>
-    </>
+      {/* Doctor Routes */}
+      <Route path="/doctor-search" element={<DoctorSearch />} />
+      <Route path="/doctors" element={<DoctorSearch />} />
+
+      <Route path="/user-dashboard/:username" element={<UserDashboard />} />
+      <Route path="/appointment" element={<AppointmentSchedule />} />
+      <Route path="/qr-code-sharing" element={<ShareQr />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/services" element={<Services />} />
+      <Route path="/doctors-page/:id" element={<DoctorProfile />} />
+      <Route path="/User-page/:id" element={<UserProfile />} />
+      <Route path="/video" element={<VideoConfrence />} />
+      <Route path="/consult" element={<Consult />} />
+      <Route path="/help" element={<Help />} />
+      <Route path="/symptom-checker" element={<SymptomChecker />} />
+    </Routes>
   );
 };
 
