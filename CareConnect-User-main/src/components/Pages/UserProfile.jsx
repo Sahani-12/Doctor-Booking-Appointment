@@ -7,7 +7,6 @@ import Footer from "../Footer";
 import {
   FileText,
   Calendar,
-  Heart,
   User,
   Mail,
   Phone,
@@ -32,7 +31,7 @@ const UserProfile = () => {
         if (!res.ok) throw new Error("Failed to fetch user data");
         const data = await res.json();
         setUser(data.data || data);
-      } catch (err) {
+      } catch {
         setError("Failed to load user data");
       } finally {
         setLoading(false);
@@ -43,7 +42,6 @@ const UserProfile = () => {
       try {
         const token = sessionStorage.getItem("token");
         const res = await fetch(`${BASE_URL}/users/documents`, {
-          method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -54,8 +52,8 @@ const UserProfile = () => {
         const data = await res.json();
         const list = data.data ?? [];
         setDocuments(Array.isArray(list) ? list : []);
-      } catch (err) {
-        setDocError("Nothing to show");
+      } catch {
+        setDocError("No documents available");
       } finally {
         setDocLoading(false);
       }
@@ -65,84 +63,143 @@ const UserProfile = () => {
     fetchDocuments();
   }, [userId]);
 
+  // Loading State
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         Loading user data...
       </div>
     );
   }
 
+  // Error State
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 text-red-500">
+      <div className="min-h-screen flex items-center justify-center bg-background text-red-500">
         {error}
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg overflow-hidden">
-        <div className="flex flex-col items-center p-6 md:flex-row">
-          <Avatar className="h-32 w-32 mb-4">
-            <AvatarImage
-              src={user.image || "/placeholder.svg"}
-              alt={user.fullname}
-            />
-            <AvatarFallback>{user.fullname?.slice(0, 2)}</AvatarFallback>
-          </Avatar>
-          <div className="flex-1">
-            <h1 className="text-3xl font-semibold text-gray-800 mb-2">
-              {user.fullname}
-            </h1>
-            <p className="text-lg text-gray-600 mb-1">
-              <span className="font-medium text-gray-700">Date of Birth:</span>{" "}
-              {user.DOB ? new Date(user.DOB).toLocaleDateString() : "—"}
-            </p>
-            <p className="text-lg text-gray-600">
-              <span className="font-medium text-gray-700">Age:</span> {user.age}
-            </p>
+    <>
+      <Navbar />
+
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted py-10 px-4">
+        {/* Profile Card */}
+        <div className="max-w-5xl mx-auto bg-card border border-border shadow-xl rounded-3xl overflow-hidden">
+          <div className="bg-gradient-to-r from-teal-500 to-emerald-600 h-32"></div>
+
+          <div className="px-6 pb-6 -mt-16">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              <Avatar className="h-32 w-32 border-4 border-white shadow-lg">
+                <AvatarImage
+                  src={user.image || "/placeholder.svg"}
+                  alt={user.fullname}
+                />
+                <AvatarFallback>
+                  {user.fullname?.slice(0, 2) || "U"}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="flex-1 text-center md:text-left">
+                <h1 className="text-3xl font-bold text-foreground">
+                  {user.fullname}
+                </h1>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4 text-muted-foreground">
+                  <p className="flex items-center gap-2">
+                    <Mail size={16} className="text-primary" />
+                    {user.email || "Not provided"}
+                  </p>
+
+                  <p className="flex items-center gap-2">
+                    <Phone size={16} className="text-primary" />
+                    {user.phone || "Not provided"}
+                  </p>
+
+                  <p className="flex items-center gap-2">
+                    <Calendar size={16} className="text-primary" />
+                    {user.DOB ? new Date(user.DOB).toLocaleDateString() : "—"}
+                  </p>
+
+                  <p className="flex items-center gap-2">
+                    <User size={16} className="text-primary" />
+                    Age: {user.age || "—"}
+                  </p>
+
+                  <p className="flex items-center gap-2">
+                    <MapPin size={16} className="text-primary" />
+                    {user.address || "Location not provided"}
+                  </p>
+                </div>
+
+                <span className="inline-block mt-4 px-4 py-1 text-sm bg-primary/10 text-primary rounded-full font-medium">
+                  {user.role === "user" ? "Patient" : user.role}
+                </span>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Documents Section */}
+        <div className="max-w-5xl mx-auto mt-10">
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2 mb-4">
+            <FileText className="text-primary" /> Medical Documents
+          </h2>
+
+          {docLoading ? (
+            <p className="text-muted-foreground">Loading documents...</p>
+          ) : docError ? (
+            <p className="text-red-500">{docError}</p>
+          ) : documents.length === 0 ? (
+            <p className="text-muted-foreground">No documents available.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {documents.map((doc) => (
+                <div
+                  key={doc._id}
+                  className="bg-card border border-border rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden"
+                >
+                  {doc.file.endsWith(".pdf") ? (
+                    <div className="flex items-center justify-center h-40 bg-muted text-muted-foreground">
+                      <FileText size={40} />
+                    </div>
+                  ) : (
+                    <img
+                      src={doc.file}
+                      alt="Document"
+                      className="w-full h-40 object-cover"
+                    />
+                  )}
+
+                  <div className="p-4 flex justify-between items-center">
+                    <a
+                      href={doc.file}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-primary hover:underline"
+                    >
+                      <Eye size={16} /> View
+                    </a>
+
+                    <a
+                      href={doc.file}
+                      download
+                      className="flex items-center gap-2 text-emerald-600 hover:underline"
+                    >
+                      <Download size={16} /> Download
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Documents Section */}
-      <div className="max-w-4xl mx-auto mt-8">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Documents</h2>
-        {docLoading ? (
-          <p className="text-gray-500">Loading documents...</p>
-        ) : docError ? (
-          <p className="text-red-500">{docError}</p>
-        ) : documents.length === 0 ? (
-          <p className="text-gray-500">No documents available.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {documents.map((doc) => (
-              <a
-                key={doc._id}
-                href={doc.file}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border rounded-xl p-4 shadow-sm hover:shadow-md transition"
-              >
-                {doc.file.endsWith(".pdf") ? (
-                  <div className="flex items-center justify-center h-40 bg-gray-100 text-gray-500">
-                    PDF Document
-                  </div>
-                ) : (
-                  <img
-                    src={doc.file}
-                    alt="Document"
-                    className="w-full h-40 object-cover rounded"
-                  />
-                )}
-              </a>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 

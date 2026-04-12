@@ -6,7 +6,14 @@ import PaymentModal from "../Payment/PaymentModal";
 import BASE_URL from "@/constants/api";
 import { authFetch } from "@/utils/authFetch";
 import { doctorAvatarUrl, formatSpecialization } from "@/utils/mediaUrl";
-import { CalendarDays, Clock, MapPin, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  CalendarDays,
+  Clock,
+  MapPin,
+  ShieldCheck,
+  Sparkles,
+  IndianRupee,
+} from "lucide-react";
 
 const Consult = () => {
   const { state } = useLocation();
@@ -24,6 +31,7 @@ const Consult = () => {
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [bookedAppointmentId, setBookedAppointmentId] = useState(null);
 
+  // Fetch doctor details
   useEffect(() => {
     if (!initial?._id) return;
     fetch(`${BASE_URL}/doctors/${initial._id}`)
@@ -35,20 +43,26 @@ const Consult = () => {
       .catch(() => {});
   }, [initial?._id]);
 
-  const minDate = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const minDate = useMemo(
+    () => new Date().toISOString().split("T")[0],
+    []
+  );
 
+  // Fetch slots
   useEffect(() => {
     if (!doctor?._id || !formData.date) {
       setSlots([]);
       setSelectedSlot("");
       return;
     }
+
     let cancelled = false;
+
     (async () => {
       try {
         const res = await authFetch(
           `/appointments/slots/${doctor._id}/${formData.date}`,
-          { method: "GET" },
+          { method: "GET" }
         );
         const data = await res.json();
         const list = data.data?.slots ?? [];
@@ -57,12 +71,14 @@ const Consult = () => {
         if (!cancelled) setSlots([]);
       }
     })();
+
     return () => {
       cancelled = true;
     };
   }, [doctor?._id, formData.date]);
 
-  const fee = Number(doctor?.fee ?? doctor?.consultationFee ?? 499) || 499;
+  const fee =
+    Number(doctor?.fee ?? doctor?.consultationFee ?? 499) || 499;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -71,16 +87,19 @@ const Consult = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!selectedSlot) {
       alert("Please select an available time slot.");
       return;
     }
+
     if (!formData.date) {
       alert("Please choose a date.");
       return;
     }
 
     setBookingLoading(true);
+
     try {
       const token = sessionStorage.getItem("token");
       if (!token) {
@@ -102,17 +121,21 @@ const Consult = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        },
+        }
       );
 
       if (response.data.success) {
         const apptId =
-          response.data.appointmentId || response.data.data?._id || null;
+          response.data.appointmentId ||
+          response.data.data?._id ||
+          null;
+
         if (!apptId) {
-          alert("Appointment booked. You can view it in your dashboard.");
+          alert("Appointment booked successfully.");
           goDashboard();
           return;
         }
+
         setBookedAppointmentId(apptId);
         setPaymentOpen(true);
       }
@@ -120,7 +143,7 @@ const Consult = () => {
       console.error("Error:", error);
       alert(
         error.response?.data?.message ||
-          "Could not book this slot. Try another time.",
+          "Could not book this slot. Try another time."
       );
     } finally {
       setBookingLoading(false);
@@ -135,23 +158,22 @@ const Consult = () => {
 
   if (!doctor) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center border border-slate-100">
-            <Sparkles className="w-10 h-10 text-teal-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-slate-900 mb-2">
-              Book a consultation
-            </h1>
-            <p className="text-slate-600 mb-8 text-sm sm:text-base">
-              Find a doctor, then tap <strong>Consult Now</strong> on their
-              card to continue here with their photo, fee, and payment.
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="bg-card border border-border shadow-xl rounded-2xl p-8 text-center max-w-md">
+            <Sparkles className="w-10 h-10 text-primary mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground">
+              Book a Consultation
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              Browse doctors and click on Consult Now to proceed.
             </p>
             <Link
               to="/doctor-search"
-              className="inline-flex justify-center w-full sm:w-auto rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 text-white px-8 py-3 text-sm font-semibold shadow-lg hover:opacity-95 transition-opacity"
+              className="mt-6 inline-block bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold"
             >
-              Browse doctors
+              Browse Doctors
             </Link>
           </div>
         </div>
@@ -163,56 +185,60 @@ const Consult = () => {
   const spec = formatSpecialization(doctor.specialization);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <Navbar />
-      <div className="max-w-3xl mx-auto px-4 py-8 sm:py-12 pb-24">
+
+      <div className="max-w-3xl mx-auto px-4 py-10">
+        {/* Header */}
         <div className="text-center mb-8">
-          <p className="text-teal-400 text-sm font-medium tracking-wide uppercase mb-2">
+          <p className="text-primary font-semibold uppercase text-sm">
             CareConnect
           </p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
-            Consult now
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Consult Now
           </h1>
-          <p className="text-slate-400 text-sm sm:text-base max-w-lg mx-auto">
-            Choose a date, pick a slot, confirm—then pay securely (Razorpay /
-            Stripe) or skip if you will pay at the clinic.
+          <p className="text-muted-foreground">
+            Choose a date, select a slot, and confirm your appointment.
           </p>
         </div>
 
-        <div className="rounded-3xl overflow-hidden shadow-2xl border border-white/10 bg-white/95 backdrop-blur">
-          <div className="bg-gradient-to-r from-teal-600 to-emerald-700 px-6 py-8 sm:px-8 text-white">
-            <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+        {/* Doctor Card */}
+        <div className="bg-card border border-border rounded-3xl shadow-xl overflow-hidden">
+          <div className="bg-gradient-to-r from-teal-600 to-emerald-600 p-6 text-white">
+            <div className="flex flex-col sm:flex-row items-center gap-6">
               <img
                 src={avatar}
                 alt={doctor.fullname}
-                className="w-28 h-28 rounded-2xl object-cover ring-4 ring-white/30 shadow-xl"
+                className="w-24 h-24 rounded-2xl object-cover shadow-lg"
               />
-              <div className="flex-1 text-center sm:text-left">
-                <h2 className="text-2xl font-bold">{doctor.fullname}</h2>
-                <p className="text-teal-100 mt-1">{spec || "Specialist"}</p>
-                <div className="mt-4 flex flex-wrap gap-3 justify-center sm:justify-start text-sm">
-                  <span className="inline-flex items-center gap-1.5 bg-white/15 rounded-full px-3 py-1">
-                    <MapPin className="w-4 h-4" />
-                    {doctor.city || doctor.location || "India"}
+              <div>
+                <h2 className="text-2xl font-bold">
+                  {doctor.fullname}
+                </h2>
+                <p>{spec || "Specialist"}</p>
+                <div className="flex gap-3 mt-2 text-sm">
+                  <span className="flex items-center gap-1">
+                    <MapPin size={14} />{" "}
+                    {doctor.city || "India"}
                   </span>
-                  <span className="inline-flex items-center gap-1.5 bg-white/15 rounded-full px-3 py-1">
-                    <ShieldCheck className="w-4 h-4" />
-                    {doctor.experience || "—"} yrs exp
+                  <span className="flex items-center gap-1">
+                    <ShieldCheck size={14} />{" "}
+                    {doctor.experience || "—"} yrs
                   </span>
                 </div>
-                <div className="mt-5 inline-flex items-baseline gap-2 bg-white/20 rounded-2xl px-4 py-2">
-                  <span className="text-sm text-teal-100">Consultation fee</span>
-                  <span className="text-3xl font-bold">₹{fee}</span>
+                <div className="mt-3 text-lg font-bold flex items-center gap-1">
+                  <IndianRupee size={18} /> {fee}
                 </div>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-2">
-                <CalendarDays className="w-4 h-4 text-teal-600" />
-                Date
+              <label className="font-semibold flex items-center gap-2">
+                <CalendarDays size={16} />
+                Select Date
               </label>
               <input
                 type="date"
@@ -220,82 +246,58 @@ const Consult = () => {
                 min={minDate}
                 value={formData.date}
                 onChange={handleChange}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-shadow"
+                className="w-full mt-2 border border-border rounded-xl p-3 bg-background"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Reason for visit
+              <label className="font-semibold">
+                Reason for Visit
               </label>
               <textarea
                 name="problem"
-                placeholder="Symptoms, duration, or questions for the doctor..."
+                rows={3}
                 value={formData.problem}
                 onChange={handleChange}
-                rows={3}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500 outline-none resize-none"
+                placeholder="Describe your symptoms..."
+                className="w-full mt-2 border border-border rounded-xl p-3 bg-background"
               />
             </div>
 
             <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 mb-3">
-                <Clock className="w-4 h-4 text-teal-600" />
-                Available slots
+              <label className="font-semibold flex items-center gap-2">
+                <Clock size={16} />
+                Available Slots
               </label>
-              {!formData.date ? (
-                <p className="text-sm text-slate-500">Pick a date first.</p>
-              ) : slots.length === 0 ? (
-                <p className="text-sm text-amber-600">
-                  No slots loaded—ensure you are logged in. Try another date.
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {slots.map(({ startTime, status }) => {
-                    const disabled = status === "booked";
-                    const active = selectedSlot === startTime;
-                    return (
-                      <button
-                        key={startTime}
-                        type="button"
-                        disabled={disabled}
-                        onClick={() => !disabled && setSelectedSlot(startTime)}
-                        className={`rounded-xl py-3 px-2 text-sm font-medium border transition-all ${
-                          disabled
-                            ? "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
-                            : active
-                              ? "bg-teal-600 text-white border-teal-600 shadow-md scale-[1.02]"
-                              : "bg-white text-slate-800 border-slate-200 hover:border-teal-400 hover:bg-teal-50"
-                        }`}
-                      >
-                        {status === "mine" ? `${startTime} (yours)` : startTime}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+                {slots.map(({ startTime, status }) => (
+                  <button
+                    key={startTime}
+                    type="button"
+                    disabled={status === "booked"}
+                    onClick={() => setSelectedSlot(startTime)}
+                    className={`py-2 rounded-lg border ${
+                      selectedSlot === startTime
+                        ? "bg-primary text-white"
+                        : "bg-background"
+                    }`}
+                  >
+                    {startTime}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={bookingLoading}
-                className={`flex-1 rounded-xl py-4 text-white font-semibold text-lg shadow-lg transition-all ${
-                  bookingLoading
-                    ? "bg-slate-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-teal-600 to-emerald-600 hover:opacity-95"
-                }`}
-              >
-                {bookingLoading ? "Booking…" : "Confirm & continue to payment"}
-              </button>
-              <Link
-                to={`/doctors-page/${doctor._id}`}
-                className="sm:w-auto text-center rounded-xl border-2 border-slate-200 py-4 px-6 font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Full profile
-              </Link>
-            </div>
+            <button
+              type="submit"
+              disabled={bookingLoading}
+              className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-3 rounded-xl font-semibold"
+            >
+              {bookingLoading
+                ? "Booking..."
+                : "Confirm & Pay"}
+            </button>
           </form>
         </div>
       </div>
@@ -305,14 +307,8 @@ const Consult = () => {
         appointmentId={bookedAppointmentId}
         amount={fee}
         doctorName={doctor.fullname}
-        onSuccess={() => {
-          setPaymentOpen(false);
-          goDashboard();
-        }}
-        onClose={() => {
-          setPaymentOpen(false);
-          goDashboard();
-        }}
+        onSuccess={goDashboard}
+        onClose={goDashboard}
       />
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import BASE_URL from "@/constants/api";
 import { patientAvatarUrl } from "@/utils/mediaUrl";
 import PatientProfileEditModal from "./PatientProfileEditModal";
+import { User, Mail, ShieldCheck, Pencil } from "lucide-react";
 
 const UserProfileDetails = () => {
   const [user, setUser] = useState(null);
@@ -10,6 +11,7 @@ const UserProfileDetails = () => {
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
+
     if (!token) {
       const stored = sessionStorage.getItem("user");
       if (stored) {
@@ -24,6 +26,7 @@ const UserProfileDetails = () => {
     }
 
     let cancelled = false;
+
     (async () => {
       try {
         const res = await fetch(`${BASE_URL}/users/profile`, {
@@ -32,21 +35,12 @@ const UserProfileDetails = () => {
             Authorization: `Bearer ${token}`,
           },
         });
+
         const j = await res.json();
+
         if (!cancelled && res.ok && j.success && j.data) {
           setUser(j.data);
-          try {
-            const prev = JSON.parse(sessionStorage.getItem("user") || "{}");
-            sessionStorage.setItem(
-              "user",
-              JSON.stringify({ ...prev, ...j.data }),
-            );
-          } catch {
-            sessionStorage.setItem("user", JSON.stringify(j.data));
-          }
-        } else if (!cancelled) {
-          const stored = sessionStorage.getItem("user");
-          if (stored) setUser(JSON.parse(stored));
+          sessionStorage.setItem("user", JSON.stringify(j.data));
         }
       } catch {
         const stored = sessionStorage.getItem("user");
@@ -61,6 +55,7 @@ const UserProfileDetails = () => {
         if (!cancelled) setLoading(false);
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -68,8 +63,19 @@ const UserProfileDetails = () => {
 
   const avatarSrc = user ? patientAvatarUrl(user) : "";
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-pulse text-muted-foreground">
+          Loading profile...
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex justify-center items-center">
+    <div className="flex justify-center items-center py-6 px-4">
+      {/* Edit Modal */}
       <PatientProfileEditModal
         open={editOpen}
         onClose={() => setEditOpen(false)}
@@ -77,40 +83,59 @@ const UserProfileDetails = () => {
         onSaved={(u) => setUser(u)}
       />
 
-      <div className="bg-white shadow-lg rounded-2xl p-6 w-72 text-center hover:shadow-xl transition">
-        <div className="w-20 h-20 mx-auto rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-          {avatarSrc ? (
-            <img
-              src={avatarSrc}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="text-2xl font-bold text-gray-600">
-              {user?.fullname?.charAt(0) || "U"}
-            </span>
-          )}
+      {/* Profile Card */}
+      <div className="w-full max-w-sm bg-card border border-border shadow-xl rounded-3xl p-6 text-center transition-all duration-300 hover:shadow-2xl">
+        {/* Avatar */}
+        <div className="relative w-24 h-24 mx-auto">
+          <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden ring-4 ring-primary/20">
+            {avatarSrc ? (
+              <img
+                src={avatarSrc}
+                alt="User Avatar"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <User className="w-10 h-10 text-muted-foreground" />
+            )}
+          </div>
+
+          {/* Edit Icon */}
+          <button
+            onClick={() => setEditOpen(true)}
+            className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-md hover:scale-110 transition"
+          >
+            <Pencil size={14} />
+          </button>
         </div>
 
-        <h2 className="mt-4 text-lg font-semibold">
-          {loading ? "…" : user?.fullname || "User Name"}
+        {/* Name */}
+        <h2 className="mt-4 text-xl font-bold text-foreground">
+          {user?.fullname || "User Name"}
         </h2>
 
-        <p className="text-sm text-gray-500">
+        {/* Email */}
+        <p className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-1">
+          <Mail size={14} />
           {user?.email || "user@email.com"}
         </p>
 
-        <span className="inline-block mt-2 px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded-full capitalize">
+        {/* Role Badge */}
+        <span className="inline-flex items-center gap-1 mt-3 px-4 py-1 text-xs font-medium bg-primary/10 text-primary rounded-full">
+          <ShieldCheck size={14} />
           {user?.role === "user" ? "Patient" : user?.role || "Patient"}
         </span>
 
+        {/* Divider */}
+        <div className="border-t border-border my-5"></div>
+
+        {/* Edit Button */}
         <button
           type="button"
-          className="mt-4 w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition disabled:opacity-50"
           onClick={() => setEditOpen(true)}
-          disabled={loading || !user}
+          disabled={!user}
+          className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2.5 rounded-xl font-semibold shadow-md hover:opacity-95 transition disabled:opacity-50"
         >
-          Edit profile
+          Edit Profile
         </button>
       </div>
     </div>
