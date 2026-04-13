@@ -5,6 +5,7 @@ import {
   useEffect,
   ReactNode,
 } from "react";
+import { API_BASE } from "../constants/api";
 
 interface AuthContextType {
   token: string | null;
@@ -47,16 +48,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       console.log("🔄 AuthContext: Sending login request...");
-      const response = await fetch(
-        "https://doctor-booking-appointment-i137.onrender.com/api/auth/admin-login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email, password }),
+      const response = await fetch(`${API_BASE}/auth/admin-login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ email, password }),
+      });
 
       console.log("📨 AuthContext: Got response, status:", response.status);
 

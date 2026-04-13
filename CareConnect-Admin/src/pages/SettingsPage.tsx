@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { Save, AlertCircle, Loader } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
-
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://doctor-booking-appointment-i137.onrender.com";
+import { API_BASE } from "../constants/api";
 
 export default function SettingsPage() {
   const { token } = useAuth();
@@ -42,7 +39,7 @@ export default function SettingsPage() {
   // 🔹 Fetch from backend
   const fetchSettings = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/settings`, {
+      const response = await fetch(`${API_BASE}/admin/settings`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -76,7 +73,7 @@ export default function SettingsPage() {
       setSuccess(false);
       setError("");
 
-      const response = await fetch(`${API_URL}/api/admin/settings`, {
+      const response = await fetch(`${API_BASE}/admin/settings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

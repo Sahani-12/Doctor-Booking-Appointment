@@ -311,13 +311,36 @@ class VideoService {
         throw new Error("Video session not found");
       }
 
+      const prescriptionFile =
+        prescriptionData?.prescriptionFile ||
+        prescriptionData?.prescriptionFileName ||
+        prescriptionData?.prescriptionFileUrl ||
+        prescriptionData?.fileUrl ||
+        prescriptionData?.url ||
+        null;
+      const prescriptionText =
+        typeof prescriptionData === "string"
+          ? prescriptionData
+          : JSON.stringify(
+              prescriptionData ?? { summary: "Consultation completed" },
+            );
+
       videoSession.prescriptionShared = {
-        name: prescriptionData.name,
-        url: prescriptionData.url,
+        name:
+          prescriptionData?.name ||
+          prescriptionData?.prescriptionFileName ||
+          "Prescription",
+        url: prescriptionFile,
         sharedAt: new Date(),
       };
 
       await videoSession.save();
+
+      await Appointment.findByIdAndUpdate(videoSession.appointmentId, {
+        prescription: prescriptionText,
+        ...(prescriptionFile ? { prescriptionFile } : {}),
+        status: "completed",
+      });
 
       return {
         success: true,

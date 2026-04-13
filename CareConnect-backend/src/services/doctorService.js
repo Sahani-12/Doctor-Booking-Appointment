@@ -130,7 +130,7 @@ const getDoctorWeeklySchedule = async (doctorId, startDate) => {
   const appointments = await Appointment.find({
     doctor: doctorId,
     date: { $gte: weekStart, $lt: weekEnd },
-    status: { $in: ["pending", "accepted"] },
+    status: { $in: ["pending", "confirmed"] },
   })
     .populate("patient", "fullname phone")
     .sort({ date: 1, slot: 1 });

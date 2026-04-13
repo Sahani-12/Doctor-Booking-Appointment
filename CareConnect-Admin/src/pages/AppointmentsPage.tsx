@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useDebounce } from "../hooks/useDebounce";
+import { API_BASE } from "../constants/api";
 
 interface Appointment {
   _id: string;
@@ -72,14 +73,11 @@ export default function AppointmentsPage() {
     try {
       setLoading(true);
       setError("");
-      const response = await fetch(
-        "https://doctor-booking-appointment-i137.onrender.com/api/admin/appointments",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/admin/appointments`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) throw new Error("Failed to fetch appointments");
 

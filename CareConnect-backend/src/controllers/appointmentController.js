@@ -9,11 +9,63 @@ const {
 const { validateFutureDate, validateTimeSlot } = require("../utils/validators");
 const { emailTemplates, sendEmail } = require("../utils/email");
 
+const toStartOfDay = (date) => {
+  const value = new Date(date);
+  value.setHours(0, 0, 0, 0);
+  return value;
+};
+
+const toEndOfDay = (date) => {
+  const value = new Date(date);
+  value.setHours(23, 59, 59, 999);
+  return value;
+};
+
+const transformAppointment = (appt) => {
+  const obj = appt.toObject ? appt.toObject() : appt;
+
+  return {
+    ...obj,
+    patientId: obj.patient?._id?.toString() || obj.patient?.toString(),
+    patientName: obj.patient?.fullname,
+    patientEmail: obj.patient?.email,
+    patientPhone: obj.patient?.phone,
+    appointmentDate: obj.date,
+    appointmentTime: obj.slot,
+    reason: obj.notes,
+    submissionDate: obj.createdAt,
+    time: obj.slot,
+    doctorName: obj.doctor?.fullname,
+    visitedFor: obj.notes,
+  };
+};
+
+const getDoctorFilterId = async (user) => {
+  if (user.role !== "doctor") return user._id;
+
+  const doctorById = await Doctor.findById(user._id).select("_id");
+  if (doctorById) return doctorById._id;
+
+  const doctorByEmail = user.email
+    ? await Doctor.findOne({ email: user.email }).select("_id")
+    : null;
+
+  return doctorByEmail?._id || user._id;
+};
+
 // @desc Create appointment
 // @route POST /api/appointments
 const createAppointment = asyncHandler(async (req, res) => {
-  const { doctorId, date, notes } = req.body;
-  const slot = req.body.slot || req.body.startTime;
+  const doctorId =
+    req.body.doctorId ||
+    req.body.doctor?._id ||
+    req.body.doctor?.id ||
+    req.body.doctor ||
+    req.body.doctor_id;
+  const date = req.body.date || req.body.appointmentDate;
+  const notes = req.body.notes || req.body.reason || req.body.visitedFor;
+  const slot =
+    req.body.slot || req.body.startTime || req.body.appointmentTime;
 
   // Validate input
   if (!doctorId || !date || !slot) {
@@ -40,10 +92,13 @@ const createAppointment = asyncHandler(async (req, res) => {
     throw new Error("Doctor not found");
   }
 
+  const appointmentDate = toStartOfDay(date);
+  const endOfDay = toEndOfDay(date);
+
   // Check if slot is already booked
   const existingAppointment = await Appointment.findOne({
     doctor: doctorId,
-    date: new Date(date),
+    date: { $gte: appointmentDate, $lte: endOfDay },
     slot,
     status: { $in: ["pending", "confirmed"] },
   });
@@ -56,7 +111,7 @@ const createAppointment = asyncHandler(async (req, res) => {
   const created = await Appointment.create({
     patient: req.user._id,
     doctor: doctorId,
-    date: new Date(date),
+    date: appointmentDate,
     slot,
     notes,
   });
@@ -69,7 +124,7 @@ const createAppointment = asyncHandler(async (req, res) => {
 
   const appointment = await Appointment.findById(created._id)
     .populate("doctor", "fullname email city")
-    .populate("patient", "fullname email");
+    .populate("patient", "fullname email phone");
 
   // Send confirmation email template (mock)
   const emailData = emailTemplates.appointmentBooked(
@@ -83,7 +138,7 @@ const createAppointment = asyncHandler(async (req, res) => {
   res.status(201).json({
     success: true,
     message: "Appointment created successfully",
-    data: appointment,
+    data: transformAppointment(appointment),
     appointmentId: appointment._id,
   });
 });
@@ -106,10 +161,11 @@ const getMyAppointments = asyncHandler(async (req, res) => {
   // Build filter based on user role
   // If role is not set, check if it's a doctor or user by trying to match doctor collection
   let isDoctor = req.user.role === "doctor";
+  const doctorFilterId = await getDoctorFilterId(req.user);
 
   // If role is determined to be doctor, build filter
   const filter = isDoctor
-    ? { doctor: req.user._id }
+    ? { doctor: doctorFilterId }
     : { patient: req.user._id };
 
   console.log("   Is Doctor:", isDoctor);
@@ -128,7 +184,7 @@ const getMyAppointments = asyncHandler(async (req, res) => {
   // Fetch appointments
   const appointments = await Appointment.find(filter)
     .populate("doctor", "fullname email city specialization fee")
-    .populate("patient", "fullname email city age gender DOB")
+    .populate("patient", "fullname email phone city age gender DOB image")
     .skip(skip)
     .limit(limit)
     .sort({ date: -1 });
@@ -136,19 +192,7 @@ const getMyAppointments = asyncHandler(async (req, res) => {
   console.log("   Appointments returned:", appointments.length);
 
   // Transform for frontend compatibility
-  const transformed = appointments.map((appt) => ({
-    ...appt.toObject(),
-    patientId: appt.patient?._id?.toString(),
-    patientName: appt.patient?.fullname,
-    patientEmail: appt.patient?.email,
-    appointmentDate: appt.date,
-    appointmentTime: appt.slot,
-    reason: appt.notes,
-    submissionDate: appt.createdAt,
-    time: appt.slot,
-    doctorName: appt.doctor?.fullname,
-    visitedFor: appt.notes,
-  }));
+  const transformed = appointments.map(transformAppointment);
 
   res.json({
     success: true,
@@ -241,10 +285,15 @@ const updateAppointmentStatus = asyncHandler(async (req, res) => {
     throw new Error("Appointment not found");
   }
 
+  const doctorFilterId = await getDoctorFilterId(req.user);
+  const isDoctorOwner =
+    req.user.role === "doctor" &&
+    doctorFilterId.toString() === appointment.doctor.toString();
+
   // Authorization: only doctor or patient or admin can update
   if (
     req.user.role !== "admin" &&
-    req.user._id.toString() !== appointment.doctor.toString() &&
+    !isDoctorOwner &&
     req.user._id.toString() !== appointment.patient.toString()
   ) {
     res.status(403);

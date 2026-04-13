@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
+import { API_BASE } from "../constants/api";
 
-const API_BASE_URL = "https://doctor-booking-appointment-i137.onrender.com/api";
+const API_BASE_URL = API_BASE;
 
 class ApiService {
   private client: AxiosInstance;

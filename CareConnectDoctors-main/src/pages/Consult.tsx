@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router";
 import PageMeta from "../components/common/PageMeta";
 import { API_BASE } from "../constants/api";
@@ -23,7 +23,7 @@ interface Patient {
   _id: string;
   fullname: string;
   email: string;
-  phone: string;
+  phone?: string;
   age?: number;
   city?: string;
   profileImage?: string;
@@ -31,12 +31,20 @@ interface Patient {
 
 interface Appointment {
   _id: string;
-  patient: Patient;
-  date: string;
-  slot: string;
+  patient?: Patient;
+  patientName?: string;
+  patientEmail?: string;
+  patientPhone?: string;
+  appointmentDate?: string;
+  appointmentTime?: string;
+  date?: string;
+  slot?: string;
   status: string;
   notes?: string;
+  reason?: string;
   reasonForVisit?: string;
+  visitedFor?: string;
+  prescription?: string;
   prescriptionFile?: string;
 }
 
@@ -49,11 +57,20 @@ interface ConsultationData {
   notes: string;
 }
 
+const safeRoomName = (roomID: string) =>
+  `careconnect-${String(roomID).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+
+const buildMeetingUrl = (roomID: string, displayName: string) =>
+  `https://meet.jit.si/${safeRoomName(
+    roomID,
+  )}#config.prejoinPageEnabled=false&userInfo.displayName=${encodeURIComponent(
+    displayName || "Doctor",
+  )}`;
+
 export default function Consult() {
   const navigate = useNavigate();
   const location = useLocation();
   const appointment = location.state?.appointment as Appointment;
-  const jitsiContainerRef = useRef<HTMLDivElement>(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -77,6 +94,33 @@ export default function Consult() {
 
   const appointmentId = appointment?._id ?? "new-consult";
   const draftStorageKey = `consultation-draft-${appointmentId}`;
+  const patientName =
+    appointment?.patient?.fullname || appointment?.patientName || "Patient";
+  const patientEmail =
+    appointment?.patient?.email || appointment?.patientEmail || "Not provided";
+  const patientPhone =
+    appointment?.patient?.phone || appointment?.patientPhone || "Not provided";
+  const appointmentDate = appointment?.date || appointment?.appointmentDate;
+  const appointmentTime = appointment?.slot || appointment?.appointmentTime;
+  const appointmentNotes =
+    appointment?.notes ||
+    appointment?.reason ||
+    appointment?.reasonForVisit ||
+    appointment?.visitedFor;
+  const doctorName = useMemo(() => {
+    try {
+      const stored =
+        localStorage.getItem("user") || sessionStorage.getItem("user") || "{}";
+      const user = JSON.parse(stored);
+      return user?.fullname || user?.name || "Doctor";
+    } catch {
+      return "Doctor";
+    }
+  }, []);
+  const meetingUrl = useMemo(
+    () => buildMeetingUrl(appointmentId, doctorName),
+    [appointmentId, doctorName],
+  );
 
   // Load draft on mount
   useEffect(() => {
@@ -125,6 +169,9 @@ export default function Consult() {
 
   // Initialize Jitsi Meet using iframe
   const initJitsiMeet = () => {
+    setSuccess("Connected to video call");
+    return;
+    /*
     if (!jitsiContainerRef.current) {
       console.error("❌ Container not found");
       setError("Video container not found. Please refresh the page.");
@@ -193,6 +240,7 @@ export default function Consult() {
       console.error("❌ Error initializing video:", err);
       setError(err.message || "Failed to initialize video conference");
     }
+    */
   };
 
   const handleStartConsultation = async () => {
@@ -250,7 +298,7 @@ export default function Consult() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          appointmentId: appointment._id,
+          appointmentId,
           prescriptionData: prescriptionPayload,
         }),
       });
@@ -362,7 +410,7 @@ export default function Consult() {
                   📞 Live Consultation
                 </h1>
                 <p className="text-slate-600 dark:text-slate-400">
-                  with {appointment.patient?.fullname}
+                  with {patientName}
                 </p>
               </div>
             </div>
@@ -394,14 +442,12 @@ export default function Consult() {
             </div>
           )}
 
-          {/* Info Banner for Mock Video Mode */}
+          {/* Info Banner for Video Mode */}
           {videoStarted && (
             <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-lg flex items-center gap-3 text-blue-700 dark:text-blue-300">
               <AlertCircle size={20} className="flex-shrink-0" />
               <span className="text-sm">
-                <strong>Demo Mode:</strong> Video simulation for testing. In
-                production, this will use a real video conference service. You
-                can still complete consultation and take notes.
+                Patient can join the same room from their appointment dashboard.
               </span>
             </div>
           )}
@@ -412,16 +458,11 @@ export default function Consult() {
               {/* Video Container */}
               <div className="bg-black rounded-2xl overflow-hidden shadow-xl border border-slate-300 dark:border-slate-700 h-96 sm:h-[500px] flex items-center justify-center relative">
                 {videoStarted ? (
-                  <div
-                    ref={jitsiContainerRef}
-                    className="w-full h-full bg-black"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+                  <iframe
+                    title={`Video consultation with ${patientName}`}
+                    src={meetingUrl}
+                    allow="camera; microphone; fullscreen; display-capture; autoplay"
+                    className="h-full w-full border-0 bg-black"
                   />
                 ) : (
                   <div className="text-center">
@@ -451,20 +492,20 @@ export default function Consult() {
                     <img
                       src={
                         appointment.patient?.profileImage ||
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${appointment.patient?.fullname}&scale=80`
+                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${patientName}&scale=80`
                       }
-                      alt={appointment.patient?.fullname}
+                      alt={patientName}
                       className="w-16 h-16 rounded-full object-cover border-4 border-blue-500"
                     />
                     <div>
                       <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                        {appointment.patient?.fullname}
+                        {patientName}
                       </h3>
                       <p className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                        <Mail size={14} /> {appointment.patient?.email}
+                        <Mail size={14} /> {patientEmail}
                       </p>
                       <p className="text-slate-600 dark:text-slate-400 flex items-center gap-1">
-                        <Phone size={14} /> {appointment.patient?.phone}
+                        <Phone size={14} /> {patientPhone}
                       </p>
                     </div>
                   </div>
@@ -473,20 +514,25 @@ export default function Consult() {
                       <Clock size={14} /> Appointment Time
                     </p>
                     <p className="text-lg font-bold text-slate-900 dark:text-white">
-                      {new Date(appointment.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {appointmentDate
+                        ? new Date(appointmentDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            },
+                          )
+                        : "-"}
                     </p>
                     <p className="text-blue-600 dark:text-blue-400 font-semibold">
-                      {appointment.slot}
+                      {appointmentTime || "-"}
                     </p>
                   </div>
                 </div>
 
                 {/* Patient Concern */}
-                {appointment.notes && (
+                {appointmentNotes && (
                   <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <h4 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
                       <AlertCircle
@@ -496,7 +542,7 @@ export default function Consult() {
                       Chief Complaint
                     </h4>
                     <p className="text-slate-700 dark:text-slate-300">
-                      {appointment.notes}
+                      {appointmentNotes}
                     </p>
                   </div>
                 )}
@@ -538,6 +584,22 @@ export default function Consult() {
                     placeholder="Enter your diagnosis..."
                     className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={2}
+                    disabled={!videoStarted}
+                  />
+                </div>
+
+                {/* Prescription */}
+                <div className="mb-5">
+                  <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
+                    Prescription
+                  </label>
+                  <textarea
+                    name="prescription"
+                    value={consultationData.prescription}
+                    onChange={handleInputChange}
+                    placeholder="Write prescription instructions..."
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
                     disabled={!videoStarted}
                   />
                 </div>

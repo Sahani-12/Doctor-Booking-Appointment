@@ -25,7 +25,7 @@ const appointmentSchema = new mongoose.Schema(
       enum: ["online", "offline"],
       default: "online",
     },
-    rating: Number, // Doctor rating after completion (1-5)
+    rating: Number, // Doctor rating after completion
     feedback: String, // Patient feedback
     prescription: String, // Doctor's prescription/notes
     prescriptionFile: String, // URL to prescription document
@@ -35,10 +35,10 @@ const appointmentSchema = new mongoose.Schema(
       ref: "Transaction",
     },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-// Add indexes for better query performance
+// Indexes for performance
 appointmentSchema.index({ patient: 1, date: -1 });
 appointmentSchema.index({ doctor: 1, date: -1 });
 appointmentSchema.index({ status: 1 });

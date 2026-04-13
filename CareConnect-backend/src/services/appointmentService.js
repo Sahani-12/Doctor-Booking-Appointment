@@ -1,6 +1,3 @@
-// Appointment Service Layer
-// Place this file in backend: src/services/appointmentService.js
-
 const Appointment = require("../models/Appointment");
 const Doctor = require("../models/Doctor");
 const { generateDailySlots } = require("../utils/response");
@@ -20,7 +17,7 @@ const isSlotAvailable = async (doctorId, date, slot) => {
     doctor: doctorId,
     date: { $gte: startOfDay, $lte: endOfDay },
     slot,
-    status: { $in: ["pending", "accepted"] },
+    status: { $in: ["pending", "confirmed"] },
   });
 
   return !existingAppointment;
@@ -40,7 +37,7 @@ const getAvailableSlotsForDate = async (doctorId, date, userId) => {
   const bookedAppointments = await Appointment.find({
     doctor: doctorId,
     date: { $gte: startOfDay, $lte: endOfDay },
-    status: { $in: ["pending", "accepted"] },
+    status: { $in: ["pending", "confirmed"] },
   });
 
   const slotMap = new Map(bookedAppointments.map((a) => [a.slot, a]));
@@ -66,7 +63,6 @@ const createAppointmentWithNotifications = async (
 ) => {
   const appointment = await Appointment.create(appointmentData);
 
-  // Send email notifications
   const emailData = emailTemplates.appointmentBooked(
     userName,
     doctorName,
@@ -75,7 +71,6 @@ const createAppointmentWithNotifications = async (
   );
 
   await sendEmail(userEmail, emailData);
-
   return appointment;
 };
 

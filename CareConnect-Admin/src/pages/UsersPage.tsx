@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useDebounce } from "../hooks/useDebounce";
+import { API_BASE } from "../constants/api";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import UserDetailsModal from "../components/Modals/UserDetailsModal";
@@ -81,14 +82,11 @@ export default function UsersPage() {
       setRefreshing(true);
       setError(""); // Clear previous errors
 
-      const response = await fetch(
-        "https://doctor-booking-appointment-i137.onrender.com/api/admin/users",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/admin/users`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch users: ${response.status}`);
@@ -112,17 +110,14 @@ export default function UsersPage() {
       setVerifying(userId);
       setError(""); // Clear previous errors
 
-      const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/admin/users/${userId}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ isVerified: !currentStatus }),
+      const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ isVerified: !currentStatus }),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update verification status");
@@ -161,15 +156,12 @@ export default function UsersPage() {
       setDeleting(userId);
       setError(""); // Clear previous errors
 
-      const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/admin/users/${userId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("Failed to delete user");

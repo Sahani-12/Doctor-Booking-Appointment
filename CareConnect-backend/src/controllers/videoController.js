@@ -3,6 +3,37 @@ const videoService = require("../services/videoService");
 const VideoSession = require("../models/VideoSession");
 const Appointment = require("../models/Appointment");
 
+const formatPrescriptionData = (prescriptionData) => {
+  if (typeof prescriptionData === "string") {
+    return prescriptionData;
+  }
+
+  return JSON.stringify(
+    prescriptionData ?? { summary: "Consultation completed" },
+  );
+};
+
+const getPrescriptionFile = (prescriptionData) => {
+  if (!prescriptionData || typeof prescriptionData === "string") return null;
+
+  return (
+    prescriptionData.prescriptionFile ||
+    prescriptionData.prescriptionFileName ||
+    prescriptionData.prescriptionFileUrl ||
+    prescriptionData.fileUrl ||
+    prescriptionData.url ||
+    null
+  );
+};
+
+const canDoctorUpdateAppointment = (user, appointment) => {
+  if (user.role === "admin") return true;
+  if (user.role !== "doctor") return false;
+
+  const doctorId = appointment.doctor || appointment.doctorId;
+  return doctorId?.toString() === user._id.toString();
+};
+
 // Create video room
 exports.createVideoRoom = async (req, res) => {
   try {
@@ -95,16 +126,32 @@ exports.savePrescription = async (req, res) => {
     const { videoSessionId, prescriptionData, appointmentId } = req.body;
 
     if (appointmentId && !videoSessionId) {
-      const text =
-        typeof prescriptionData === "string"
-          ? prescriptionData
-          : JSON.stringify(
-              prescriptionData ?? { summary: "Consultation completed" },
-            );
-      await Appointment.findByIdAndUpdate(appointmentId, {
-        prescription: text,
+      const appointment = await Appointment.findById(appointmentId);
+
+      if (!appointment) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Appointment not found" });
+      }
+
+      if (!canDoctorUpdateAppointment(req.user, appointment)) {
+        return res.status(403).json({
+          success: false,
+          message: "Only the assigned doctor can save this prescription",
+        });
+      }
+
+      const update = {
+        prescription: formatPrescriptionData(prescriptionData),
         status: "completed",
-      });
+      };
+      const prescriptionFile = getPrescriptionFile(prescriptionData);
+      if (prescriptionFile) {
+        update.prescriptionFile = prescriptionFile;
+      }
+
+      await Appointment.findByIdAndUpdate(appointmentId, update);
+
       return res.status(200).json({
         success: true,
         message: "Prescription saved to appointment",
@@ -116,6 +163,21 @@ exports.savePrescription = async (req, res) => {
         success: false,
         message:
           "Provide appointmentId + prescriptionData, or videoSessionId + prescriptionData",
+      });
+    }
+
+    const videoSession = await VideoSession.findById(videoSessionId);
+
+    if (!videoSession) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Video session not found" });
+    }
+
+    if (!canDoctorUpdateAppointment(req.user, videoSession)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the assigned doctor can save this prescription",
       });
     }
 

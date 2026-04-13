@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useDebounce } from "../hooks/useDebounce";
+import { API_BASE } from "../constants/api";
 import Button from "../components/ui/Button";
 import Badge from "../components/ui/Badge";
 import DoctorDetailsModal from "../components/Modals/DoctorDetailsModal";
@@ -87,14 +88,11 @@ export default function DoctorsPage() {
       setRefreshing(true);
       setError(""); // Clear previous errors
 
-      const response = await fetch(
-        "https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/admin/doctors`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch doctors: ${response.status}`);
@@ -119,7 +117,7 @@ export default function DoctorsPage() {
       setError(""); // Clear previous errors
 
       const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/${doctorId}/approve`,
+        `${API_BASE}/admin/doctors/${doctorId}/approve`,
         {
           method: "PUT",
           headers: {
@@ -167,15 +165,12 @@ export default function DoctorsPage() {
       setDeleting(doctorId);
       setError(""); // Clear previous errors
 
-      const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/${doctorId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/admin/doctors/${doctorId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("Failed to delete doctor");

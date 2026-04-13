@@ -9,6 +9,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { API_BASE } from "../constants/api";
 
 interface Stats {
   totalUsers: number;
@@ -37,14 +38,11 @@ export default function DashboardPage() {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "https://doctor-booking-appointment-i137.onrender.com/api/admin/dashboard",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/admin/dashboard`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch stats");

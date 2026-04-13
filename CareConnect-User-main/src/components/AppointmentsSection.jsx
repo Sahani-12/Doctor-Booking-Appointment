@@ -12,7 +12,7 @@ const AppointmentTable = () => {
 
   const [statusFilter, setStatusFilter] = useState({
     completed: false,
-    accepted: false,
+    confirmed: false,
     pending: false,
   });
 
@@ -54,6 +54,48 @@ const AppointmentTable = () => {
     navigate(`/video?roomID=${appointmentId}`);
   };
 
+  const formatPrescription = (value) => {
+    if (!value) return "";
+
+    try {
+      const data = JSON.parse(value);
+      const meds = Array.isArray(data.medications)
+        ? data.medications
+            .filter((med) => med?.name || med?.dosage || med?.duration)
+            .map(
+              (med) =>
+                `${med.name || "Medicine"} ${med.dosage || ""} ${
+                  med.duration || ""
+                }`.trim(),
+            )
+            .join("\n")
+        : "";
+
+      return [
+        data.symptoms && `Symptoms: ${data.symptoms}`,
+        data.diagnosis && `Diagnosis: ${data.diagnosis}`,
+        data.prescription && `Prescription: ${data.prescription}`,
+        meds && `Medicines:\n${meds}`,
+        data.followUpDate && `Follow-up: ${data.followUpDate}`,
+        data.notes && `Notes: ${data.notes}`,
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+    } catch {
+      return String(value);
+    }
+  };
+
+  const handleViewPrescription = (appt) => {
+    const text = formatPrescription(appt.prescription);
+    const file = appt.prescriptionFile
+      ? `\n\nFile: ${appt.prescriptionFile}`
+      : "";
+    window.alert(
+      text ? `${text}${file}` : `Prescription file: ${appt.prescriptionFile}`,
+    );
+  };
+
   // Filter Logic
   const filteredAppointments = appointments.filter((appt) => {
     if (!appt) return false;
@@ -85,7 +127,7 @@ const AppointmentTable = () => {
     switch (status?.toLowerCase()) {
       case "completed":
         return "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400";
-      case "accepted":
+      case "confirmed":
         return "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400";
       case "pending":
         return "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400";
@@ -108,7 +150,7 @@ const AppointmentTable = () => {
       <div className="flex flex-wrap gap-4 mb-6 justify-between">
         <div className="flex flex-wrap items-center gap-3">
           <Filter size={18} className="text-muted-foreground" />
-          {["completed", "accepted", "pending"].map((key) => (
+          {["completed", "confirmed", "pending"].map((key) => (
             <label
               key={key}
               className="flex items-center gap-2 text-sm text-foreground"
@@ -157,6 +199,7 @@ const AppointmentTable = () => {
               <th className="p-3 text-left">Doctor</th>
               <th className="p-3 text-left">Reason</th>
               <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Prescription</th>
               <th className="p-3 text-left">Action</th>
             </tr>
           </thead>
@@ -164,19 +207,19 @@ const AppointmentTable = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="7" className="text-center p-6">
+                <td colSpan="8" className="text-center p-6">
                   Loading appointments...
                 </td>
               </tr>
             ) : filteredAppointments.length === 0 ? (
               <tr>
-                <td colSpan="7" className="text-center p-6">
+                <td colSpan="8" className="text-center p-6">
                   No appointments found
                 </td>
               </tr>
             ) : (
               filteredAppointments.map((appt, i) => {
-                const isAccepted = appt.status?.toLowerCase() === "accepted";
+                const isConfirmed = appt.status?.toLowerCase() === "confirmed";
 
                 return (
                   <tr
@@ -209,9 +252,23 @@ const AppointmentTable = () => {
                       </span>
                     </td>
 
+                    <td className="p-3">
+                      {appt.prescription || appt.prescriptionFile ? (
+                        <button
+                          type="button"
+                          onClick={() => handleViewPrescription(appt)}
+                          className="text-sm font-semibold text-orange-600 hover:underline"
+                        >
+                          View
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-xs">Pending</span>
+                      )}
+                    </td>
+
                     {/* Video Call Button */}
                     <td className="p-3">
-                      {isAccepted ? (
+                      {isConfirmed ? (
                         <button
                           onClick={() => handleJoinCall(appt._id)}
                           className="flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition"

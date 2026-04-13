@@ -8,6 +8,7 @@ import {
   Eye,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { API_BASE } from "../constants/api";
 
 interface Payment {
   _id: string;
@@ -39,14 +40,11 @@ export default function PaymentsPage() {
   const fetchPayments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "https://doctor-booking-appointment-i137.onrender.com/api/admin/payments",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/admin/payments`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch payments");

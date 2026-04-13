@@ -8,10 +8,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { DateSelectArg, EventClickArg, EventInput } from "@fullcalendar/core";
-
-const VITE_API_URL =
-  import.meta.env.VITE_API_URL ||
-  "https://doctor-booking-appointment-i137.onrender.com/api";
+import { API_BASE } from "../constants/api";
 
 interface Appointment {
   _id: string;
@@ -23,7 +20,7 @@ interface Appointment {
   };
   date: string;
   slot: string;
-  status: "pending" | "accepted" | "completed" | "cancelled";
+  status: "pending" | "confirmed" | "completed" | "cancelled";
   notes?: string;
 }
 
@@ -57,7 +54,7 @@ const Calendar: React.FC = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          `${VITE_API_URL}/appointments/my?limit=100`,
+          `${API_BASE}/appointments/my?limit=100`,
           {
             method: "GET",
             headers: {
@@ -84,7 +81,7 @@ const Calendar: React.FC = () => {
               end: new Date(appt.date).toISOString().split("T")[0],
               extendedProps: {
                 calendar:
-                  appt.status === "accepted"
+                  appt.status === "confirmed"
                     ? "Success"
                     : appt.status === "cancelled"
                       ? "Warning"

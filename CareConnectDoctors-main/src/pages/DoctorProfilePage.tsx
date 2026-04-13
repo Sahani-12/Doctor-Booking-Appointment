@@ -17,6 +17,7 @@ import {
 import { Button } from "../components/ui/modern/Button";
 import { Modal } from "../components/ui/modern/Modal";
 import { Badge } from "../components/ui/modern/Badge";
+import { API_BASE } from "../constants/api";
 
 interface DoctorProfile {
   _id: string;
@@ -72,14 +73,11 @@ export default function DoctorProfilePage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/doctors/${doctorId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/doctors/${doctorId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch profile");
@@ -132,17 +130,14 @@ export default function DoctorProfilePage() {
         licenseNumber: formData.licenseNumber,
       };
 
-      const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/doctors/profile`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updateData),
+      const response = await fetch(`${API_BASE}/doctors/profile`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(updateData),
+      });
 
       if (!response.ok) {
         throw new Error("Failed to update profile");

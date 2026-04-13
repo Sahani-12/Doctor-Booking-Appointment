@@ -1,5 +1,4 @@
-import React, { useEffect, useRef } from "react";
-import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
+import React, { useMemo } from "react";
 
 function generateID(len = 6) {
   const chars =
@@ -16,87 +15,56 @@ function getRoomID() {
   return params.get("roomID") || `careconnect-${generateID(5)}`;
 }
 
+function getStoredUser() {
+  try {
+    return JSON.parse(
+      sessionStorage.getItem("user") || localStorage.getItem("user") || "{}",
+    );
+  } catch (error) {
+    console.warn("User parsing error:", error);
+    return {};
+  }
+}
+
+function safeRoomName(roomID) {
+  return `careconnect-${String(roomID).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+}
+
 const VideoCall = () => {
-  const containerRef = useRef(null);
-  const hasJoinedRef = useRef(false); // Prevent duplicate joins
+  const { roomID, userName, meetingUrl } = useMemo(() => {
+    const roomID = getRoomID();
+    const storedUser = getStoredUser();
+    const userName = storedUser?.fullname || storedUser?.name || "Patient";
+    const roomName = safeRoomName(roomID);
+    const displayName = encodeURIComponent(userName);
+    const meetingUrl = `https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&userInfo.displayName=${displayName}`;
 
-  useEffect(() => {
-    if (hasJoinedRef.current) return;
-    hasJoinedRef.current = true;
-
-    const startCall = async () => {
-      try {
-        const roomID = getRoomID();
-
-        // Safely get user data
-        let userName = "Guest";
-        let userID = generateID(8);
-
-        try {
-          const storedUser = JSON.parse(sessionStorage.getItem("user"));
-          userName = storedUser?.fullname || "Guest";
-          userID = storedUser?._id || storedUser?.id || generateID(8);
-        } catch (error) {
-          console.warn("User parsing error:", error);
-        }
-
-        // Load credentials from .env
-        const appID = Number(import.meta.env.VITE_ZEGO_APP_ID);
-        const serverSecret = import.meta.env.VITE_ZEGO_SERVER_SECRET;
-
-        if (!appID || !serverSecret) {
-          console.error(
-            "ZEGOCLOUD credentials are missing. Check your .env file.",
-          );
-          return;
-        }
-
-        // Generate Token
-        const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
-          appID,
-          serverSecret,
-          roomID,
-          String(userID),
-          userName,
-        );
-
-        const zp = ZegoUIKitPrebuilt.create(kitToken);
-
-        // Join Room
-        zp.joinRoom({
-          container: containerRef.current,
-          sharedLinks: [
-            {
-              name: "Join Link",
-              url: `${window.location.origin}/video?roomID=${roomID}`,
-            },
-          ],
-          scenario: {
-            mode: ZegoUIKitPrebuilt.OneONoneCall,
-          },
-          showScreenSharingButton: true,
-          showTextChat: true,
-          showUserList: true,
-          maxUsers: 2,
-        });
-      } catch (error) {
-        console.error("ZEGOCLOUD Error:", error);
-      }
-    };
-
-    startCall();
-
-    // Cleanup on component unmount
-    return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = "";
-      }
-    };
+    return { roomID, userName, meetingUrl };
   }, []);
 
+  const joinLink = `${window.location.origin}/video?roomID=${encodeURIComponent(
+    roomID,
+  )}`;
+
   return (
-    <div className="w-screen h-screen bg-gray-100 dark:bg-gray-900">
-      <div ref={containerRef} className="w-full h-full" />
+    <div className="w-screen h-screen bg-gray-950 text-white">
+      <div className="absolute left-4 top-4 z-10 max-w-[calc(100vw-2rem)] rounded-lg bg-black/70 px-4 py-3 text-sm shadow-lg backdrop-blur">
+        <p className="font-semibold">CareConnect video call</p>
+        <p className="text-white/75">Room: {roomID}</p>
+        <button
+          type="button"
+          className="mt-2 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold hover:bg-emerald-700"
+          onClick={() => navigator.clipboard?.writeText(joinLink)}
+        >
+          Copy join link
+        </button>
+      </div>
+      <iframe
+        title={`Video consultation for ${userName}`}
+        src={meetingUrl}
+        allow="camera; microphone; fullscreen; display-capture; autoplay"
+        className="h-full w-full border-0"
+      />
     </div>
   );
 };

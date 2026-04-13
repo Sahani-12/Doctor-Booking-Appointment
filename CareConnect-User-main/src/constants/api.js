@@ -1,4 +1,4 @@
-/** Backend API root — always includes `/api`. Set VITE_API_URL to e.g. https://doctor-booking-appointment-i137.onrender.com/api */
+/** Backend API root: always includes `/api`. Set VITE_API_URL when deploying. */
 const raw =
   import.meta.env.VITE_API_URL ||
   "https://doctor-booking-appointment-i137.onrender.com";

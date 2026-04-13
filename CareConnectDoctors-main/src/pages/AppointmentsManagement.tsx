@@ -13,12 +13,15 @@ import {
   XCircle,
   MessageSquare,
   Mail,
+  Video,
 } from "lucide-react";
+import { useNavigate } from "react-router";
 
 import { Badge } from "../components/ui/modern/Badge";
 import { Modal } from "../components/ui/modern/Modal";
 
 import { useDebounce } from "../hooks/useDebounce";
+import { API_BASE } from "../constants/api";
 
 interface Appointment {
   _id: string;
@@ -33,6 +36,7 @@ interface Appointment {
 }
 
 export default function DoctorAppointmentsPage() {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState("");
@@ -61,14 +65,11 @@ export default function DoctorAppointmentsPage() {
       setLoading(true);
       setError("");
 
-      const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/appointments/my`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/appointments/my`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch appointments");
@@ -92,7 +93,7 @@ export default function DoctorAppointmentsPage() {
       setError("");
 
       const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/appointments/${appointmentId}/status`,
+        `${API_BASE}/appointments/${appointmentId}/status`,
         {
           method: "PUT",
           headers: {
@@ -140,7 +141,7 @@ export default function DoctorAppointmentsPage() {
       setError("");
 
       const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/appointments/${appointmentId}/status`,
+        `${API_BASE}/appointments/${appointmentId}/status`,
         {
           method: "PUT",
           headers: {
@@ -167,6 +168,10 @@ export default function DoctorAppointmentsPage() {
     } finally {
       setDeleting("");
     }
+  };
+
+  const openConsultation = (appointment: Appointment) => {
+    navigate("/consult", { state: { appointment } });
   };
 
   // Filter appointments
@@ -470,6 +475,18 @@ export default function DoctorAppointmentsPage() {
                               <CheckCheck size={18} />
                             </button>
                           )}
+                          {appointment.status === "confirmed" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openConsultation(appointment);
+                              }}
+                              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                              title="Start Consultation"
+                            >
+                              <Video size={18} />
+                            </button>
+                          )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -611,6 +628,15 @@ export default function DoctorAppointmentsPage() {
                   {confirming === selectedAppointment._id
                     ? "Confirming..."
                     : "Confirm Appointment"}
+                </button>
+              )}
+              {selectedAppointment.status === "confirmed" && (
+                <button
+                  onClick={() => openConsultation(selectedAppointment)}
+                  className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                >
+                  <Video size={18} />
+                  Start Consult
                 </button>
               )}
               <button

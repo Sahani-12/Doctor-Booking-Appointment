@@ -10,6 +10,7 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { API_BASE } from "../constants/api";
 
 interface PendingDoctor {
   _id: string;
@@ -37,14 +38,11 @@ export default function DoctorApprovalsPage() {
   const fetchPendingDoctors = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        "https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/pending",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${API_BASE}/admin/doctors/pending`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) throw new Error("Failed to fetch doctors");
 
@@ -61,7 +59,7 @@ export default function DoctorApprovalsPage() {
     try {
       setApproving(doctorId);
       const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/${doctorId}/approve`,
+        `${API_BASE}/admin/doctors/${doctorId}/approve`,
         {
           method: "PUT",
           headers: {
@@ -90,7 +88,7 @@ export default function DoctorApprovalsPage() {
     try {
       setApproving(doctorId);
       const response = await fetch(
-        `https://doctor-booking-appointment-i137.onrender.com/api/admin/doctors/${doctorId}/approve`,
+        `${API_BASE}/admin/doctors/${doctorId}/approve`,
         {
           method: "PUT",
           headers: {

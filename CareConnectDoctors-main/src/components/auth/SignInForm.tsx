@@ -23,7 +23,9 @@ export default function SignInForm() {
   };
 
   const API_URL = (() => {
-    const raw = import.meta.env.VITE_API_URL || "http://localhost:4000";
+    const raw =
+      import.meta.env.VITE_API_URL ||
+      "https://doctor-booking-appointment-i137.onrender.com";
     const t = raw.replace(/\/$/, "");
     return t.endsWith("/api") ? t : `${t}/api`;
   })();
