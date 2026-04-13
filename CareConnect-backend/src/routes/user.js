@@ -10,20 +10,15 @@ const {
 
 // Upload Document
 router.post(
-  "/documents",
-  authMiddleware,
+  "/documents/upload",
+  protect,
   upload.single("file"),
-  uploadDocument
+  uploadDocument,
 );
-
 // Get All Documents
 router.get("/documents", authMiddleware, getDocuments);
 
 // Delete Document
-router.delete(
-  "/documents/:id",
-  authMiddleware,
-  deleteDocument
-);
+router.delete("/documents/:id", authMiddleware, deleteDocument);
 
 module.exports = router;

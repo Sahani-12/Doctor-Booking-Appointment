@@ -161,7 +161,8 @@ const uploadDocument = asyncHandler(async (req, res) => {
     throw new Error("File is required");
   }
 
-  const fileUrl = `${req.protocol}://${req.get("host")}/${req.file.path}`;
+  const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+
   const document = await Document.create({
     user: req.user._id,
     fileUrl,
@@ -169,7 +170,6 @@ const uploadDocument = asyncHandler(async (req, res) => {
     message: req.body.message || "",
   });
 
-  // Transform response
   const obj = document.toObject();
   obj.file = obj.fileUrl;
 

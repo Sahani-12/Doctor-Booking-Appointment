@@ -19,6 +19,9 @@ const aiRoute = require("./routes/aiRoute");
 const symptomRoutes = require("./routes/symptomRoutes");
 
 const app = express();
+const path = require("path");
+
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Middleware
 
@@ -27,7 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan("dev"));
 // app.use("/uploads", express.static("uploads"));
-app.use("/uploads", express.static("uploads"));
+// app.use("/uploads", express.static("uploads"));
 app.use("/api/ai", aiRoute);
 app.use("/api/symptoms", symptomRoutes);
 // Database connection
