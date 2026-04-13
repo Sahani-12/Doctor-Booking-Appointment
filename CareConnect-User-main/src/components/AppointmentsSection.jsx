@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import BASE_URL from "@/constants/api";
-import { Calendar, Search, Filter } from "lucide-react";
+import { Calendar, Search, Filter, Video } from "lucide-react";
 
 const AppointmentTable = () => {
   const [appointments, setAppointments] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   const [statusFilter, setStatusFilter] = useState({
     completed: false,
@@ -45,6 +47,11 @@ const AppointmentTable = () => {
       ...prev,
       [key]: !prev[key],
     }));
+  };
+
+  // Navigate to Video Call
+  const handleJoinCall = (appointmentId) => {
+    navigate(`/video?roomID=${appointmentId}`);
   };
 
   // Filter Logic
@@ -99,7 +106,6 @@ const AppointmentTable = () => {
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 mb-6 justify-between">
-        {/* Status Filters */}
         <div className="flex flex-wrap items-center gap-3">
           <Filter size={18} className="text-muted-foreground" />
           {["completed", "accepted", "pending"].map((key) => (
@@ -125,7 +131,6 @@ const AppointmentTable = () => {
           />
         </div>
 
-        {/* Search Box */}
         <div className="relative">
           <Search
             size={16}
@@ -152,59 +157,77 @@ const AppointmentTable = () => {
               <th className="p-3 text-left">Doctor</th>
               <th className="p-3 text-left">Reason</th>
               <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Action</th>
             </tr>
           </thead>
 
           <tbody>
             {loading ? (
               <tr>
-                <td
-                  colSpan="6"
-                  className="text-center p-6 text-muted-foreground"
-                >
+                <td colSpan="7" className="text-center p-6">
                   Loading appointments...
                 </td>
               </tr>
             ) : filteredAppointments.length === 0 ? (
               <tr>
-                <td
-                  colSpan="6"
-                  className="text-center p-6 text-muted-foreground"
-                >
+                <td colSpan="7" className="text-center p-6">
                   No appointments found
                 </td>
               </tr>
             ) : (
-              filteredAppointments.map((appt, i) => (
-                <tr
-                  key={i}
-                  className="border-b border-border hover:bg-muted/50 transition"
-                >
-                  <td className="p-3">
-                    {appt.submissionDate
-                      ? new Date(appt.submissionDate).toLocaleDateString()
-                      : "-"}
-                  </td>
+              filteredAppointments.map((appt, i) => {
+                const isAccepted = appt.status?.toLowerCase() === "accepted";
 
-                  <td className="p-3">
-                    {appt.date ? new Date(appt.date).toLocaleDateString() : "-"}
-                  </td>
+                return (
+                  <tr
+                    key={i}
+                    className="border-b border-border hover:bg-muted/50 transition"
+                  >
+                    <td className="p-3">
+                      {appt.submissionDate
+                        ? new Date(appt.submissionDate).toLocaleDateString()
+                        : "-"}
+                    </td>
 
-                  <td className="p-3">{appt.time || "-"}</td>
-                  <td className="p-3">{appt.doctorName || "-"}</td>
-                  <td className="p-3">{appt.visitedFor || "-"}</td>
+                    <td className="p-3">
+                      {appt.date
+                        ? new Date(appt.date).toLocaleDateString()
+                        : "-"}
+                    </td>
 
-                  <td className="p-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusBadge(
-                        appt.status,
-                      )}`}
-                    >
-                      {appt.status}
-                    </span>
-                  </td>
-                </tr>
-              ))
+                    <td className="p-3">{appt.time || "-"}</td>
+                    <td className="p-3">{appt.doctorName || "-"}</td>
+                    <td className="p-3">{appt.visitedFor || "-"}</td>
+
+                    <td className="p-3">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusBadge(
+                          appt.status,
+                        )}`}
+                      >
+                        {appt.status}
+                      </span>
+                    </td>
+
+                    {/* Video Call Button */}
+                    <td className="p-3">
+                      {isAccepted ? (
+                        <button
+                          onClick={() => handleJoinCall(appt._id)}
+                          className="flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition"
+                        >
+                          <Video size={16} />
+                          Join Call
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-xs">
+                          Not Available
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
