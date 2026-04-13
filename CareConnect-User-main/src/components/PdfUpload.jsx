@@ -1,25 +1,32 @@
 import React, { useState } from "react";
 import BASE_URL from "@/constants/api";
+import { UploadCloud, Loader2 } from "lucide-react";
 
-const Input = () => {
-  const [pdfs, setPdfs] = useState([]);
-  const [message, setMessage] = useState("");
+const PdfUpload = ({ onUploadSuccess }) => {
   const [file, setFile] = useState(null);
-  const [selectedFileName, setSelectedFileName] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [fileName, setFileName] = useState("");
 
-  // ✅ File Change
   const handleFileChange = (e) => {
     const selected = e.target.files[0];
     if (selected) {
       setFile(selected);
-      setSelectedFileName(selected.name);
+      setFileName(selected.name);
     }
   };
 
-  // ✅ Upload Function
-  const uploadFile = async () => {
-    if (!file || !message) {
-      alert("File + message required");
+  const handleUpload = async (e) => {
+    e.preventDefault();
+
+    if (!file) {
+      alert("Please select a file");
+      return;
+    }
+
+    const token = sessionStorage.getItem("token");
+    if (!token) {
+      alert("Please login first");
       return;
     }
 
@@ -28,97 +35,95 @@ const Input = () => {
     formData.append("message", message);
 
     try {
+      setLoading(true);
+
       const res = await fetch(`${BASE_URL}/users/documents/upload`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${sessionStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: formData,
       });
 
-      if (!res.ok) throw new Error("Upload failed");
-
       const data = await res.json();
 
-      const now = new Date().toLocaleString();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Upload failed");
+      }
 
-      setPdfs((prev) => [
-        { name: message, url: data.url, date: now, type: file.type },
-        ...prev,
-      ]);
+      alert("Document uploaded successfully!");
 
-      // reset
       setFile(null);
       setMessage("");
-      setSelectedFileName("");
-    } catch (err) {
-      console.error(err);
+      setFileName("");
+
+      if (onUploadSuccess) onUploadSuccess();
+    } catch (error) {
+      console.error("Upload Error:", error);
       alert("Upload failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      {/* Upload Box */}
-      <div className="flex items-center gap-2 bg-gray-100 p-3 rounded-lg">
-        <input type="file" onChange={handleFileChange} />
+    <form
+      onSubmit={handleUpload}
+      className="bg-card border border-border rounded-xl p-5 shadow-md"
+    >
+      <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+        <UploadCloud className="text-primary" size={20} />
+        Upload Medical Document
+      </h2>
 
+      <div className="flex flex-col md:flex-row gap-3">
+        {/* File Input */}
         <input
-          type="text"
-          placeholder="Enter message..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="flex-1 p-2 border rounded"
+          type="file"
+          onChange={handleFileChange}
+          className="flex-1 text-sm border border-border rounded-lg px-3 py-2
+                     bg-background text-foreground
+                     file:mr-3 file:py-2 file:px-4 file:rounded-lg
+                     file:border-0 file:bg-orange-500 file:text-white
+                     hover:file:bg-orange-600"
         />
 
+        {/* Message Input */}
+        <input
+          type="text"
+          placeholder="Enter document title..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="flex-1 px-3 py-2 border border-border rounded-lg
+                     bg-background text-foreground"
+        />
+
+        {/* Upload Button */}
         <button
-          onClick={uploadFile}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          type="submit"
+          disabled={loading}
+          className="flex items-center justify-center gap-2
+                     bg-orange-500 text-white px-5 py-2 rounded-lg
+                     hover:bg-orange-600 transition disabled:opacity-50"
         >
-          Upload
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin" size={18} />
+              Uploading...
+            </>
+          ) : (
+            "Upload"
+          )}
         </button>
       </div>
 
-      {/* Selected File */}
-      {selectedFileName && (
-        <p className="mt-2 text-sm text-gray-600">
-          Selected: {selectedFileName}
+      {fileName && (
+        <p className="mt-2 text-sm text-muted-foreground">
+          Selected: {fileName}
         </p>
       )}
-
-      {/* File List */}
-      <div className="mt-4 space-y-3">
-        {pdfs.map((file, index) => (
-          <div
-            key={index}
-            className="flex flex-col md:flex-row md:items-center justify-between gap-2 border p-4 rounded shadow"
-          >
-            <div>
-              <p className="text-sm text-gray-500">{file.date}</p>
-              <p className="font-semibold">{file.name}</p>
-              <p className="text-xs text-gray-400">
-                {file.type || "Medical Report"}
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <a href={file.url} target="_blank">
-                <button className="bg-gray-500 text-white px-3 py-1 rounded">
-                  View
-                </button>
-              </a>
-
-              <a href={file.url} download>
-                <button className="bg-blue-500 text-white px-3 py-1 rounded">
-                  Download
-                </button>
-              </a>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+    </form>
   );
 };
 
-export default Input;
+export default PdfUpload;

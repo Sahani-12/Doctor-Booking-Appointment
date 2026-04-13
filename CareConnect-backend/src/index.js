@@ -26,6 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan("dev"));
+// app.use("/uploads", express.static("uploads"));
 app.use("/uploads", express.static("uploads"));
 app.use("/api/ai", aiRoute);
 app.use("/api/symptoms", symptomRoutes);

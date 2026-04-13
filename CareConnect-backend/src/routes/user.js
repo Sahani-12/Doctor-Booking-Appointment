@@ -50,7 +50,7 @@ router.get("/dashboard/appointments", protect, getUserAppointments);
 router.get("/dashboard/documents", protect, getUserDocuments);
 router.get("/dashboard/documents/:userId", protect, getDocumentsByUserId);
 router.post(
-  "/dashboard/documents/upload",
+  "/documents/upload",
   protect,
   upload.single("file"),
   uploadDocument,
