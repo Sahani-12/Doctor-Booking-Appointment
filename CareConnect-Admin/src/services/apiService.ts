@@ -111,6 +111,129 @@ class ApiService {
     });
     return response.data;
   }
+
+  // Hospital Management Endpoints
+  // Patient Management
+  async getHospitalPatients(filters?: any) {
+    const response = await this.client.get("/hospital/patients", {
+      params: filters,
+    });
+    return response.data;
+  }
+
+  async getPatientDetails(patientId: string) {
+    const response = await this.client.get(`/hospital/patients/${patientId}`);
+    return response.data;
+  }
+
+  // Medical Records Management
+  async getHospitalMedicalRecords(filters?: any) {
+    const response = await this.client.get("/hospital/medical-records", {
+      params: filters,
+    });
+    return response.data;
+  }
+
+  async approveMedicalRecord(
+    recordId: string,
+    status: "approved" | "rejected",
+  ) {
+    const response = await this.client.put(
+      `/hospital/medical-records/${recordId}/approve`,
+      { status },
+    );
+    return response.data;
+  }
+
+  async getMedicalRecordDetails(recordId: string) {
+    const response = await this.client.get(
+      `/hospital/medical-records/${recordId}`,
+    );
+    return response.data;
+  }
+
+  // Lab Orders Management
+  async getHospitalLabOrders(filters?: any) {
+    const response = await this.client.get("/hospital/lab-orders", {
+      params: filters,
+    });
+    return response.data;
+  }
+
+  async approveLabOrder(orderId: string, status: "approved" | "rejected") {
+    const response = await this.client.put(
+      `/hospital/lab-orders/${orderId}/approve`,
+      { status },
+    );
+    return response.data;
+  }
+
+  async updateLabOrderStatus(orderId: string, status: string) {
+    const response = await this.client.put(
+      `/hospital/lab-orders/${orderId}/status`,
+      { status },
+    );
+    return response.data;
+  }
+
+  // Admissions Management
+  async getHospitalAdmissions(filters?: any) {
+    const response = await this.client.get("/hospital/admissions", {
+      params: filters,
+    });
+    return response.data;
+  }
+
+  async approveAdmission(admissionId: string, status: "approved" | "rejected") {
+    const response = await this.client.put(
+      `/hospital/admissions/${admissionId}/approve`,
+      { status },
+    );
+    return response.data;
+  }
+
+  async dischargePatient(admissionId: string, dischargeSummary: string) {
+    const response = await this.client.put(
+      `/hospital/admissions/${admissionId}/discharge`,
+      { dischargeSummary },
+    );
+    return response.data;
+  }
+
+  // Bills Management
+  async getHospitalBills(filters?: any) {
+    const response = await this.client.get("/hospital/bills", {
+      params: filters,
+    });
+    return response.data;
+  }
+
+  async generateBill(
+    patientId: string,
+    items: Array<{ description: string; amount: number }>,
+  ) {
+    const response = await this.client.post("/hospital/bills", {
+      patientId,
+      items,
+    });
+    return response.data;
+  }
+
+  async approveBill(billId: string) {
+    const response = await this.client.put(`/hospital/bills/${billId}/approve`);
+    return response.data;
+  }
+
+  // Pending Approvals (Dashboard Overview)
+  async getPendingApprovals() {
+    const response = await this.client.get("/hospital/pending-approvals");
+    return response.data;
+  }
+
+  async getApprovalStats() {
+    const response = await this.client.get("/hospital/approval-stats");
+    return response.data;
+  }
 }
 
 export default new ApiService();

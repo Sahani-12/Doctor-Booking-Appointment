@@ -20,7 +20,13 @@ const calculatePagination = (page = 1, limit = 15) => {
   const pageNum = Math.max(1, Number(page));
   const limitNum = Math.max(1, Number(limit));
   const skip = (pageNum - 1) * limitNum;
-  return { pageNum, limitNum, skip };
+  return {
+    page: pageNum,
+    limit: limitNum,
+    pageNum,
+    limitNum,
+    skip,
+  };
 };
 
 // Generate slots for a doctor

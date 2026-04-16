@@ -21,6 +21,7 @@ const settingsSchema = new mongoose.Schema(
     },
     maintenanceMessage: {
       type: String,
+      
       default: "App under maintenance. Please try again later.",
     },
     updatedBy: {

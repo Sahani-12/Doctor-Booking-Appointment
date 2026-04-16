@@ -21,7 +21,7 @@ const HeroSection = () => {
         CareConnect
         <span className="bg-gradient-to-r from-orange-500 to-red-800 text-transparent bg-clip-text">
           {" "}
-          for care that fits your life
+          hospital care in one connected portal
         </span>
       </h1>
       <div className="mt-10 text-lg text-center text-neutral-500 ">
@@ -37,10 +37,10 @@ const HeroSection = () => {
           </button>
         )}
         <button
-          href="#"
+          onClick={() => navigate(userLoggedIn ? "/hospital-portal" : "/services")}
           className="py-3 px-4 mx-3 rounded-md border border-orange-700 shadow-sm"
         >
-          Explore More
+          {userLoggedIn ? "Open Hospital Portal" : "Explore Services"}
         </button>
       </div>
       <div className="flex mt-10 justify-center">

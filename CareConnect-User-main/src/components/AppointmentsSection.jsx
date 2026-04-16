@@ -50,8 +50,10 @@ const AppointmentTable = () => {
   };
 
   // Navigate to Video Call
-  const handleJoinCall = (appointmentId) => {
-    navigate(`/video?roomID=${appointmentId}`);
+  const handleJoinCall = (appointment) => {
+    // Grab the ID whether backend sends _id, id, or appointmentId
+    const roomId = appointment._id || appointment.id || appointment.appointmentId;
+    navigate(`/video?roomID=${roomId}`);
   };
 
   const formatPrescription = (value) => {
@@ -270,7 +272,7 @@ const AppointmentTable = () => {
                     <td className="p-3">
                       {isConfirmed ? (
                         <button
-                          onClick={() => handleJoinCall(appt._id)}
+                          onClick={() => handleJoinCall(appt)}
                           className="flex items-center gap-2 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition"
                         >
                           <Video size={16} />

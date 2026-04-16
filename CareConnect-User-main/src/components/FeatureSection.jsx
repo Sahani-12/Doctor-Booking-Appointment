@@ -12,15 +12,16 @@ const FeatureSection = () => {
 
         {/* Main Heading */}
         <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mt-6 leading-tight tracking-tight text-gray-900 dark:text-white">
-          Effortlessly Manage{" "}
+          Coordinate Your{" "}
           <span className="block bg-gradient-to-r from-orange-500 via-orange-600 to-orange-800 dark:from-orange-400 dark:via-amber-400 dark:to-yellow-300 bg-clip-text text-transparent">
-            Your Health
+            Hospital Journey
           </span>
         </h2>
 
         {/* Description */}
         <p className="text-gray-600 dark:text-gray-400 mt-4 text-lg">
-          Smart healthcare solutions designed to simplify your medical journey.
+          From appointments to admissions, diagnostics, records, and billing,
+          every step of care stays connected.
         </p>
       </div>
 

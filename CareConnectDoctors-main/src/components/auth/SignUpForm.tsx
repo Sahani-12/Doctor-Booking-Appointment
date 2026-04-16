@@ -195,6 +195,7 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
+import { API_BASE } from "../../constants/api";
 
 export default function SignUpForm() {
   const navigate = useNavigate();
@@ -234,17 +235,13 @@ export default function SignUpForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const API_URL =
-    import.meta.env.VITE_API_URL ||
-    "https://doctor-booking-appointment-i137.onrender.com/api";
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/register/doctor`, {
+      const response = await fetch(`${API_BASE}/auth/register/doctor`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

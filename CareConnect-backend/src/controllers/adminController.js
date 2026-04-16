@@ -5,6 +5,11 @@ const Appointment = require("../models/Appointment");
 const Document = require("../models/Document");
 const Transaction = require("../models/Transaction");
 const Settings = require("../models/Settings");
+const Department = require("../models/Department");
+const Admission = require("../models/Admission");
+const LabOrder = require("../models/LabOrder");
+const Bill = require("../models/Bill");
+const MedicalRecord = require("../models/MedicalRecord");
 const { calculatePagination } = require("../utils/response");
 
 // @desc Get all users
@@ -135,7 +140,12 @@ const updateUser = asyncHandler(async (req, res) => {
 // @desc Update doctor approval status
 // @route PUT /api/admin/doctors/:id/approve
 const approveDoctor = asyncHandler(async (req, res) => {
-  const { isApproved } = req.body;
+  let { isApproved } = req.body;
+
+  if (typeof isApproved !== "boolean" && typeof req.body.status === "string") {
+    if (req.body.status === "approved") isApproved = true;
+    if (req.body.status === "rejected") isApproved = false;
+  }
 
   if (typeof isApproved !== "boolean") {
     res.status(400);
@@ -173,6 +183,10 @@ const deleteUser = asyncHandler(async (req, res) => {
   // Also delete user's appointments and documents
   await Appointment.deleteMany({ patient: req.params.id });
   await Document.deleteMany({ user: req.params.id });
+  await Admission.deleteMany({ patient: req.params.id });
+  await LabOrder.deleteMany({ patient: req.params.id });
+  await Bill.deleteMany({ patient: req.params.id });
+  await MedicalRecord.deleteMany({ patient: req.params.id });
 
   res.json({
     success: true,
@@ -192,6 +206,14 @@ const deleteDoctor = asyncHandler(async (req, res) => {
 
   // Also delete doctor's appointments
   await Appointment.deleteMany({ doctor: req.params.id });
+  await Admission.deleteMany({ doctor: req.params.id });
+  await LabOrder.deleteMany({ doctor: req.params.id });
+  await Bill.deleteMany({ doctor: req.params.id });
+  await MedicalRecord.deleteMany({ doctor: req.params.id });
+  await Department.updateMany(
+    { headDoctor: req.params.id },
+    { $unset: { headDoctor: "" } },
+  );
 
   res.json({
     success: true,
@@ -312,6 +334,13 @@ const getDashboard = asyncHandler(async (req, res) => {
   const totalDoctors = await Doctor.countDocuments();
   const pendingDoctors = await Doctor.countDocuments({ isApproved: false });
   const totalAppointments = await Appointment.countDocuments();
+  const departments = await Department.countDocuments();
+  const activeAdmissions = await Admission.countDocuments({
+    status: { $in: ["admitted", "under-treatment", "ready-for-discharge"] },
+  });
+  const pendingLabOrders = await LabOrder.countDocuments({
+    status: { $in: ["ordered", "sample-collected", "processing"] },
+  });
 
   const revenueData = await Transaction.aggregate([
     {
@@ -325,6 +354,16 @@ const getDashboard = asyncHandler(async (req, res) => {
     },
   ]);
 
+  const billingData = await Bill.aggregate([
+    {
+      $group: {
+        _id: null,
+        grossBilling: { $sum: "$totalAmount" },
+        pendingCollections: { $sum: "$balanceDue" },
+      },
+    },
+  ]);
+
   res.json({
     success: true,
     data: {
@@ -333,6 +372,11 @@ const getDashboard = asyncHandler(async (req, res) => {
       pendingDoctors,
       totalAppointments,
       totalRevenue: revenueData[0]?.totalRevenue || 0,
+      departments,
+      activeAdmissions,
+      pendingLabOrders,
+      grossBilling: billingData[0]?.grossBilling || 0,
+      pendingCollections: billingData[0]?.pendingCollections || 0,
     },
   });
 });

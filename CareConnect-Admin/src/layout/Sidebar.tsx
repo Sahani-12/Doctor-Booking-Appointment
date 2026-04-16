@@ -10,6 +10,7 @@ import {
   CreditCard,
   Settings,
   CheckCircle,
+  Building2,
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -23,6 +24,7 @@ export default function Sidebar() {
     { icon: Users, label: "Manage Users", path: "/users" },
     { icon: Calendar, label: "Appointments", path: "/appointments" },
     { icon: CreditCard, label: "Payments", path: "/payments" },
+    { icon: Building2, label: "Hospital Ops", path: "/hospital-operations" },
     { icon: Settings, label: "Settings", path: "/settings" },
   ];
 

@@ -3,11 +3,13 @@ import BASE_URL from "@/constants/api";
 import { patientAvatarUrl } from "@/utils/mediaUrl";
 import PatientProfileEditModal from "./PatientProfileEditModal";
 import { User, Mail, ShieldCheck, Pencil } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const UserProfileDetails = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
@@ -101,7 +103,7 @@ const UserProfileDetails = () => {
 
           {/* Edit Icon */}
           <button
-            onClick={() => setEditOpen(true)}
+            onClick={() => navigate("/profile")}
             className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-md hover:scale-110 transition"
           >
             <Pencil size={14} />
@@ -131,7 +133,7 @@ const UserProfileDetails = () => {
         {/* Edit Button */}
         <button
           type="button"
-          onClick={() => setEditOpen(true)}
+          onClick={() => navigate("/profile")}
           disabled={!user}
           className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2.5 rounded-xl font-semibold shadow-md hover:opacity-95 transition disabled:opacity-50"
         >

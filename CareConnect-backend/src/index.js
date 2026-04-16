@@ -13,6 +13,7 @@ const paymentRoutes = require("./routes/payments");
 const chatRoutes = require("./routes/chat");
 const videoRoutes = require("./routes/video");
 const notificationRoutes = require("./routes/notifications");
+const hospitalRoutes = require("./routes/hospital");
 const { notFound, errorHandler } = require("./middleware/error");
 const aiRoute = require("./routes/aiRoute");
 // const symptomRoutes = require("./routes/symptomRoutes.js");
@@ -53,6 +54,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/video", videoRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/hospital", hospitalRoutes);
 
 // Health check
 app.get("/", (req, res) => {

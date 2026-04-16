@@ -21,6 +21,11 @@ interface Stats {
   pendingDoctors: number;
   totalAppointments: number;
   totalRevenue: number;
+  departments: number;
+  activeAdmissions: number;
+  pendingLabOrders: number;
+  grossBilling: number;
+  pendingCollections: number;
 }
 
 interface StatCardProps {
@@ -65,6 +70,11 @@ export default function AdminDashboardPage() {
     pendingDoctors: 0,
     totalAppointments: 0,
     totalRevenue: 0,
+    departments: 0,
+    activeAdmissions: 0,
+    pendingLabOrders: 0,
+    grossBilling: 0,
+    pendingCollections: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -139,7 +149,7 @@ export default function AdminDashboardPage() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
         {/* Total Users */}
         <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 dark:from-blue-900/30 dark:to-blue-800/30 backdrop-blur-sm border border-blue-200/50 dark:border-blue-700/50 rounded-2xl p-6 hover:border-blue-400/80 dark:hover:border-blue-600 transition">
           <div className="flex items-center justify-between">
@@ -221,6 +231,86 @@ export default function AdminDashboardPage() {
             </div>
             <div className="p-3 bg-pink-100 dark:bg-pink-900/40 rounded-lg">
               <DollarSign className="w-6 h-6 text-pink-600 dark:text-pink-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-cyan-500/10 to-cyan-600/10 dark:from-cyan-900/30 dark:to-cyan-800/30 backdrop-blur-sm border border-cyan-200/50 dark:border-cyan-700/50 rounded-2xl p-6 hover:border-cyan-400/80 dark:hover:border-cyan-600 transition">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
+                Departments
+              </p>
+              <p className="text-3xl font-bold text-cyan-600 dark:text-cyan-400 mt-2">
+                {stats.departments}
+              </p>
+            </div>
+            <div className="p-3 bg-cyan-100 dark:bg-cyan-900/40 rounded-lg">
+              <Stethoscope className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/10 dark:from-emerald-900/30 dark:to-emerald-800/30 backdrop-blur-sm border border-emerald-200/50 dark:border-emerald-700/50 rounded-2xl p-6 hover:border-emerald-400/80 dark:hover:border-emerald-600 transition">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
+                Active Admissions
+              </p>
+              <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mt-2">
+                {stats.activeAdmissions}
+              </p>
+            </div>
+            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/40 rounded-lg">
+              <Activity className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/10 dark:from-amber-900/30 dark:to-amber-800/30 backdrop-blur-sm border border-amber-200/50 dark:border-amber-700/50 rounded-2xl p-6 hover:border-amber-400/80 dark:hover:border-amber-600 transition">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
+                Pending Labs
+              </p>
+              <p className="text-3xl font-bold text-amber-600 dark:text-amber-400 mt-2">
+                {stats.pendingLabOrders}
+              </p>
+            </div>
+            <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-lg">
+              <Loader className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-rose-500/10 to-rose-600/10 dark:from-rose-900/30 dark:to-rose-800/30 backdrop-blur-sm border border-rose-200/50 dark:border-rose-700/50 rounded-2xl p-6 hover:border-rose-400/80 dark:hover:border-rose-600 transition">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
+                Gross Billing
+              </p>
+              <p className="text-3xl font-bold text-rose-600 dark:text-rose-400 mt-2">
+                â‚¹{(stats.grossBilling / 1000).toFixed(1)}K
+              </p>
+            </div>
+            <div className="p-3 bg-rose-100 dark:bg-rose-900/40 rounded-lg">
+              <DollarSign className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-500/10 to-orange-600/10 dark:from-orange-900/30 dark:to-orange-800/30 backdrop-blur-sm border border-orange-200/50 dark:border-orange-700/50 rounded-2xl p-6 hover:border-orange-400/80 dark:hover:border-orange-600 transition">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-slate-600 dark:text-slate-400 text-sm font-medium">
+                Pending Collections
+              </p>
+              <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 mt-2">
+                â‚¹{(stats.pendingCollections / 1000).toFixed(1)}K
+              </p>
+            </div>
+            <div className="p-3 bg-orange-100 dark:bg-orange-900/40 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
         </div>

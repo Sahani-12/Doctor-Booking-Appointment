@@ -1,70 +1,79 @@
-import React, { useMemo } from "react";
-
-function generateID(len = 6) {
-  const chars =
-    "12345qwertyuiopasdfgh67890jklmnbvcxzMNBVCZXASDQWERTYHGFUIOLKJP";
-  let result = "";
-  for (let i = 0; i < len; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-function getRoomID() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("roomID") || `careconnect-${generateID(5)}`;
-}
-
-function getStoredUser() {
-  try {
-    return JSON.parse(
-      sessionStorage.getItem("user") || localStorage.getItem("user") || "{}",
-    );
-  } catch (error) {
-    console.warn("User parsing error:", error);
-    return {};
-  }
-}
-
-function safeRoomName(roomID) {
-  return `careconnect-${String(roomID).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
-}
+import React from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 
 const VideoCall = () => {
-  const { roomID, userName, meetingUrl } = useMemo(() => {
-    const roomID = getRoomID();
-    const storedUser = getStoredUser();
-    const userName = storedUser?.fullname || storedUser?.name || "Patient";
-    const roomName = safeRoomName(roomID);
-    const displayName = encodeURIComponent(userName);
-    const meetingUrl = `https://meet.jit.si/${roomName}#config.prejoinPageEnabled=false&userInfo.displayName=${displayName}`;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  // Make it robust: check for roomID or roomId, just in case.
+  const roomID = params.get("roomID") || params.get("roomId");
 
-    return { roomID, userName, meetingUrl };
-  }, []);
+  const myMeeting = async (element) => {
+    if (!element || !roomID || roomID === "undefined") {
+      return; // Don't initialize if roomID is invalid
+    }
 
-  const joinLink = `${window.location.origin}/video?roomID=${encodeURIComponent(
-    roomID,
-  )}`;
+    let userName = "Patient";
+    let userId = Date.now().toString();
+
+    try {
+      const storedUser =
+        sessionStorage.getItem("user") || localStorage.getItem("user");
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        userName = parsed.fullname || parsed.name || "Patient";
+        userId = parsed._id || parsed.id || Date.now().toString();
+      }
+    } catch (e) {
+      console.error("Error parsing user data:", e);
+    }
+
+    // Apne .env file me Zego Keys add karna na bhoolein
+    const appID = Number(import.meta.env.VITE_ZEGO_APP_ID || 0);
+    const serverSecret = import.meta.env.VITE_ZEGO_SERVER_SECRET || "";
+
+    if (!appID || !serverSecret) {
+      console.error("ZegoCloud credentials missing in .env file");
+      alert("Video call service is not configured properly. Missing API keys.");
+      return;
+    }
+
+    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+      appID,
+      serverSecret,
+      roomID, // URL se aane wala appointment ID
+      String(userId),
+      String(userName),
+    );
+
+    const zc = ZegoUIKitPrebuilt.create(kitToken);
+    zc.joinRoom({
+      container: element,
+      scenario: {
+        mode: ZegoUIKitPrebuilt.OneONoneCall,
+      },
+      showPreJoinView: false,
+      turnOnCameraWhenJoining: true,
+      turnOnMicrophoneWhenJoining: true,
+      showLeaveRoomConfirmDialog: true,
+      onLeaveRoom: () => {
+        navigate(-1); // Call cut hone par wapas appointment page pe bhej dega
+      },
+    });
+  };
 
   return (
-    <div className="w-screen h-screen bg-gray-950 text-white">
-      <div className="absolute left-4 top-4 z-10 max-w-[calc(100vw-2rem)] rounded-lg bg-black/70 px-4 py-3 text-sm shadow-lg backdrop-blur">
-        <p className="font-semibold">CareConnect video call</p>
-        <p className="text-white/75">Room: {roomID}</p>
-        <button
-          type="button"
-          className="mt-2 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold hover:bg-emerald-700"
-          onClick={() => navigator.clipboard?.writeText(joinLink)}
-        >
-          Copy join link
-        </button>
-      </div>
-      <iframe
-        title={`Video consultation for ${userName}`}
-        src={meetingUrl}
-        allow="camera; microphone; fullscreen; display-capture; autoplay"
-        className="h-full w-full border-0"
-      />
+    <div className="w-screen h-screen bg-gray-950 text-white flex flex-col">
+      {roomID && roomID !== "undefined" ? (
+        <div ref={myMeeting} className="w-full h-full bg-black"></div>
+      ) : (
+        <div className="flex items-center justify-center h-full">
+          <p className="text-xl font-semibold">
+            Invalid Room ID. Please join from your appointments list.
+          </p>
+        </div>
+      )}
     </div>
   );
 };

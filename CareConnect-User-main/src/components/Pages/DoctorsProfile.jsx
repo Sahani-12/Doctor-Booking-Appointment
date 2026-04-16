@@ -137,11 +137,6 @@ export default function DoctorProfile() {
     }
   };
 
-  // 🔥 JOIN CALL
-  const handleJoin = () => {
-    navigate(`/video?roomID=${doctorId}`);
-  };
-
   if (!doctor) return <Loader />;
 
   return (
@@ -201,20 +196,29 @@ export default function DoctorProfile() {
                         {slots.map(({ startTime, status }) => (
                           <button
                             key={startTime}
-                            disabled={status === "booked"}
+                            disabled={status === "booked" || status === "mine"}
                             onClick={() => {
-                              setSelectedSlot(startTime);
-                              setShowDialog(true);
+                              if (status === "mine") {
+                                toast({
+                                  title: "Appointment Already Booked",
+                                  description:
+                                    "Please join from 'My Appointments' page.",
+                                });
+                                navigate("/appointments");
+                              } else if (status !== "booked") {
+                                setSelectedSlot(startTime);
+                                setShowDialog(true);
+                              }
                             }}
                             className={`p-2 border rounded ${
-                              status === "booked"
-                                ? "bg-gray-200"
+                              status === "booked" || status === "mine"
+                                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                                 : selectedSlot === startTime
                                   ? "bg-emerald-600 text-white"
                                   : ""
                             }`}
                           >
-                            {status === "mine" ? "Join" : startTime}
+                            {status === "mine" ? "Booked" : startTime}
                           </button>
                         ))}
                       </div>

@@ -18,6 +18,7 @@ import {
   ArrowLeft,
   X,
 } from "lucide-react";
+import { ZegoUIKitPrebuilt } from "@zegocloud/zego-uikit-prebuilt";
 
 interface Patient {
   _id: string;
@@ -56,16 +57,6 @@ interface ConsultationData {
   followUpDate: string;
   notes: string;
 }
-
-const safeRoomName = (roomID: string) =>
-  `careconnect-${String(roomID).replace(/[^a-zA-Z0-9_-]/g, "-")}`;
-
-const buildMeetingUrl = (roomID: string, displayName: string) =>
-  `https://meet.jit.si/${safeRoomName(
-    roomID,
-  )}#config.prejoinPageEnabled=false&userInfo.displayName=${encodeURIComponent(
-    displayName || "Doctor",
-  )}`;
 
 export default function Consult() {
   const navigate = useNavigate();
@@ -117,10 +108,6 @@ export default function Consult() {
       return "Doctor";
     }
   }, []);
-  const meetingUrl = useMemo(
-    () => buildMeetingUrl(appointmentId, doctorName),
-    [appointmentId, doctorName],
-  );
 
   // Load draft on mount
   useEffect(() => {
@@ -167,82 +154,6 @@ export default function Consult() {
     localStorage.removeItem(draftStorageKey);
   };
 
-  // Initialize Jitsi Meet using iframe
-  const initJitsiMeet = () => {
-    setSuccess("Connected to video call");
-    return;
-    /*
-    if (!jitsiContainerRef.current) {
-      console.error("❌ Container not found");
-      setError("Video container not found. Please refresh the page.");
-      return;
-    }
-
-    try {
-      // Clear container
-      jitsiContainerRef.current.innerHTML = "";
-
-      // Create a mock video interface (simulates video call)
-      const mockVideoDiv = document.createElement("div");
-      mockVideoDiv.style.width = "100%";
-      mockVideoDiv.style.height = "100%";
-      mockVideoDiv.style.backgroundColor = "#000";
-      mockVideoDiv.style.display = "flex";
-      mockVideoDiv.style.alignItems = "center";
-      mockVideoDiv.style.justifyContent = "center";
-      mockVideoDiv.style.position = "relative";
-      mockVideoDiv.style.overflow = "hidden";
-
-      // Add gradient background to simulate video
-      mockVideoDiv.style.background =
-        "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
-
-      // Create main video area (patient)
-      const mainVideo = document.createElement("div");
-      mainVideo.style.width = "100%";
-      mainVideo.style.height = "100%";
-      mainVideo.style.backgroundColor = "#1a1a1a";
-      mainVideo.style.display = "flex";
-      mainVideo.style.alignItems = "center";
-      mainVideo.style.justifyContent = "center";
-      mainVideo.style.position = "relative";
-
-      const patientName = appointment.patient?.fullname || "Patient";
-      const videoContent = `
-        <div style="text-align: center; color: white;">
-          <div style="font-size: 64px; margin-bottom: 16px;">👤</div>
-          <div style="font-size: 24px; font-weight: bold; margin-bottom: 8px;">${patientName}</div>
-          <div style="font-size: 14px; color: #aaa;">Connected</div>
-          <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;">
-            <div style="width: 12px; height: 12px; background: #4ade80; border-radius: 50%; animation: pulse 2s infinite;"></div>
-            <span style="font-size: 12px;">Video Active</span>
-          </div>
-        </div>
-      `;
-
-      mainVideo.innerHTML = videoContent;
-
-      // Add pulse animation
-      const style = document.createElement("style");
-      style.textContent = `
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `;
-      document.head.appendChild(style);
-
-      jitsiContainerRef.current.appendChild(mainVideo);
-
-      console.log("✅ Video call interface initialized");
-      setSuccess("✅ Connected to video call - Mock Mode");
-    } catch (err: any) {
-      console.error("❌ Error initializing video:", err);
-      setError(err.message || "Failed to initialize video conference");
-    }
-    */
-  };
-
   const handleStartConsultation = async () => {
     try {
       setLoading(true);
@@ -259,12 +170,7 @@ export default function Consult() {
       }
 
       setVideoStarted(true);
-      setSuccess("✅ Connecting to video call...");
-
-      // Initialize Jitsi meet with a small delay to ensure DOM is ready
-      setTimeout(() => {
-        initJitsiMeet();
-      }, 100);
+      setSuccess("✅ Connecting to video call via ZegoCloud...");
     } catch (error: any) {
       console.error("Error:", error);
       setError(error.message || "Failed to start consultation");
@@ -272,6 +178,44 @@ export default function Consult() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const myMeeting = async (element: HTMLDivElement) => {
+    if (!element) return;
+    
+    // Get App ID and Server Secret from environment variables
+    const appID = Number(import.meta.env.VITE_ZEGO_APP_ID || process.env.REACT_APP_ZEGO_APP_ID || 0);
+    const serverSecret = import.meta.env.VITE_ZEGO_SERVER_SECRET || process.env.REACT_APP_ZEGO_SERVER_SECRET || "";
+
+    if (!appID || !serverSecret) {
+      setError("ZegoCloud credentials missing in .env file.");
+      return;
+    }
+
+    const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
+      appID,
+      serverSecret,
+      appointmentId,
+      Date.now().toString(),
+      doctorName
+    );
+
+    const zp = ZegoUIKitPrebuilt.create(kitToken);
+    zp.joinRoom({
+      container: element,
+      scenario: {
+        mode: ZegoUIKitPrebuilt.OneONoneCall,
+      },
+      showPreJoinView: false,
+      turnOnCameraWhenJoining: true,
+      turnOnMicrophoneWhenJoining: true,
+      showMyCameraToggleButton: true,
+      showMyMicrophoneToggleButton: true,
+      showAudioVideoSettingsButton: true,
+      showScreenSharingButton: true,
+      showTextChat: true,
+      showLeaveRoomConfirmDialog: false,
+    });
   };
 
   const handleEndConsultation = async () => {
@@ -357,8 +301,8 @@ export default function Consult() {
 
   // Load Jitsi Meet script
   useEffect(() => {
-    // Using iframe-based approach, no script loading needed
-    console.log("✅ Video system ready (iframe-based)");
+    // ZegoCloud handles its own initialization when the component mounts
+    console.log("✅ Video system ready (ZegoCloud)");
   }, []);
 
   if (!appointment) {
@@ -458,11 +402,9 @@ export default function Consult() {
               {/* Video Container */}
               <div className="bg-black rounded-2xl overflow-hidden shadow-xl border border-slate-300 dark:border-slate-700 h-96 sm:h-[500px] flex items-center justify-center relative">
                 {videoStarted ? (
-                  <iframe
-                    title={`Video consultation with ${patientName}`}
-                    src={meetingUrl}
-                    allow="camera; microphone; fullscreen; display-capture; autoplay"
-                    className="h-full w-full border-0 bg-black"
+                  <div
+                    className="h-full w-full bg-black"
+                    ref={myMeeting}
                   />
                 ) : (
                   <div className="text-center">

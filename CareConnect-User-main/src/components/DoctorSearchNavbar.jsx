@@ -12,17 +12,24 @@ const Navbar = () => {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [userName, setUserName] = useState(null);
+  const [userImage, setUserImage] = useState(null);
 
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("user");
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUserName(parsedUser.fullname);
-    }
+    const loadUser = () => {
+      const storedUser = sessionStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUserName(parsedUser.fullname);
+        setUserImage(parsedUser.image || parsedUser.avatar);
+      }
+    };
+    loadUser();
+    window.addEventListener("userUpdated", loadUser);
+    return () => window.removeEventListener("userUpdated", loadUser);
   }, []);
 
   // Close dropdown outside click
@@ -45,6 +52,7 @@ const Navbar = () => {
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("token");
     setUserName(null);
+    setUserImage(null);
     navigate("/login"); // ✅ redirect
   };
 
@@ -71,9 +79,20 @@ const Navbar = () => {
               <button
                 ref={buttonRef}
                 onClick={() => setIsVisible(!isVisible)}
-                className="px-4 py-2 bg-gray-200 rounded-lg"
+                className="flex items-center gap-2 px-2 py-1.5 pr-4 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-full transition"
               >
-                {userName}
+                {userImage ? (
+                  <img
+                    src={userImage}
+                    alt="User"
+                    className="w-8 h-8 rounded-full object-cover border border-gray-300"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                    {userName.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <span className="font-medium text-gray-700">{userName}</span>
               </button>
 
               {isVisible && (

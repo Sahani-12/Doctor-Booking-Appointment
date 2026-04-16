@@ -14,6 +14,7 @@ import {
   MessageSquare,
   Mail,
   Video,
+  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router";
 
@@ -170,8 +171,52 @@ export default function DoctorAppointmentsPage() {
     }
   };
 
+  const handleComplete = async (appointmentId: string) => {
+    try {
+      setConfirming(appointmentId);
+      setError("");
+
+      const response = await fetch(
+        `${API_BASE}/appointments/${appointmentId}/status`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status: "completed" }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to complete appointment");
+      }
+
+      const updatedAppointments = appointments.map((a) =>
+        a._id === appointmentId ? { ...a, status: "completed" } : a,
+      );
+      setAppointments(updatedAppointments);
+
+      if (selectedAppointment?._id === appointmentId) {
+        setSelectedAppointment({ ...selectedAppointment, status: "completed" });
+      }
+
+      setSuccess("Appointment marked as completed.");
+    } catch (err: any) {
+      setError(err.message || "Failed to complete appointment");
+    } finally {
+      setConfirming("");
+    }
+  };
+
   const openConsultation = (appointment: Appointment) => {
     navigate("/consult", { state: { appointment } });
+  };
+
+  const openPatientHub = (appointment: Appointment) => {
+    navigate(
+      `/patients-hub?patient=${appointment.patientId}&appointment=${appointment._id}`,
+    );
   };
 
   // Filter appointments
@@ -462,6 +507,16 @@ export default function DoctorAppointmentsPage() {
                           >
                             <Eye size={18} />
                           </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openPatientHub(appointment);
+                            }}
+                            className="p-2 hover:bg-cyan-100 dark:hover:bg-cyan-900/30 rounded-lg transition-colors text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300"
+                            title="Open Patient Hub"
+                          >
+                            <FileText size={18} />
+                          </button>
                           {appointment.status === "pending" && (
                             <button
                               onClick={(e) => {
@@ -476,16 +531,29 @@ export default function DoctorAppointmentsPage() {
                             </button>
                           )}
                           {appointment.status === "confirmed" && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openConsultation(appointment);
-                              }}
-                              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
-                              title="Start Consultation"
-                            >
-                              <Video size={18} />
-                            </button>
+                            <>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openConsultation(appointment);
+                                }}
+                                className="p-2 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                                title="Start Consultation"
+                              >
+                                <Video size={18} />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleComplete(appointment._id);
+                                }}
+                                disabled={confirming === appointment._id}
+                                className="p-2 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-lg transition-colors text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 disabled:opacity-50"
+                                title="Mark Completed"
+                              >
+                                <CheckCircle size={18} />
+                              </button>
+                            </>
                           )}
                           <button
                             onClick={(e) => {
@@ -615,6 +683,13 @@ export default function DoctorAppointmentsPage() {
 
             {/* Action Buttons */}
             <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => openPatientHub(selectedAppointment)}
+                className="flex-1 px-4 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+              >
+                <FileText size={18} />
+                Open Patient Hub
+              </button>
               {selectedAppointment.status === "pending" && (
                 <button
                   onClick={() => {
@@ -631,13 +706,28 @@ export default function DoctorAppointmentsPage() {
                 </button>
               )}
               {selectedAppointment.status === "confirmed" && (
-                <button
-                  onClick={() => openConsultation(selectedAppointment)}
-                  className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
-                >
-                  <Video size={18} />
-                  Start Consult
-                </button>
+                <>
+                  <button
+                    onClick={() => openConsultation(selectedAppointment)}
+                    className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                  >
+                    <Video size={18} />
+                    Start Consult
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleComplete(selectedAppointment._id);
+                      setTimeout(() => setSelectedAppointment(null), 500);
+                    }}
+                    disabled={confirming === selectedAppointment._id}
+                    className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <CheckCircle size={18} />
+                    {confirming === selectedAppointment._id
+                      ? "Updating..."
+                      : "Mark Complete"}
+                  </button>
+                </>
               )}
               <button
                 onClick={() => setSelectedAppointment(null)}

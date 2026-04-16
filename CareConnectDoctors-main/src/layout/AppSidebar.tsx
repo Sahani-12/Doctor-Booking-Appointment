@@ -9,7 +9,6 @@ import {
   HorizontaLDots,
   ListIcon,
   PieChartIcon,
-  TableIcon,
   UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -22,56 +21,42 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
+const overviewItems: NavItem[] = [
   {
     icon: <GridIcon />,
-    name: "Home",
-    subItems: [{ name: "Dashboard", path: "/home", pro: false }],
+    name: "Overview Dashboard",
+    path: "/home",
   },
+  {
+    icon: <CalendarIcon />,
+    name: "My Schedule",
+    path: "/calendar",
+  },
+];
 
+const clinicalItems: NavItem[] = [
   {
     icon: <ListIcon />,
-    name: "Live consult",
+    name: "Patients Directory",
+    path: "/patients-hub",
+  },
+  {
+    icon: <ListIcon />,
+    name: "Consultation Desk",
     path: "/consult",
   },
+];
 
-  {
-    icon: <UserCircleIcon />,
-    name: "Doctor Profile",
-    path: "/profile",
-  },
-
+const managementItems: NavItem[] = [
   {
     icon: <CalendarIcon />,
     name: "Appointments",
     path: "/appointments",
   },
-
   {
-    name: "Patient Forms",
-    icon: <ListIcon />,
-    subItems: [{ name: "Medical Forms", path: "/form-elements", pro: false }],
-  },
-  {
-    name: "Patient Records",
-    icon: <TableIcon />,
-    subItems: [{ name: "Health Records", path: "/basic-tables", pro: false }],
-  },
-  {
-    icon: <CalendarIcon />,
-    name: "Calender",
-    path: "/calendar",
-  },
-];
-
-const othersItems: NavItem[] = [
-  {
-    icon: <PieChartIcon />,
-    name: "Charts",
-    subItems: [
-      { name: "Line Chart", path: "/line-chart", pro: false },
-      { name: "Bar Chart", path: "/bar-chart", pro: false },
-    ],
+    icon: <UserCircleIcon />,
+    name: "Profile & Settings",
+    path: "/profile",
   },
 ];
 
@@ -80,7 +65,7 @@ const AppSidebar: React.FC = () => {
   const location = useLocation();
 
   const [openSubmenu, setOpenSubmenu] = useState<{
-    type: "main" | "others";
+    type: string;
     index: number;
   } | null>(null);
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
@@ -96,14 +81,17 @@ const AppSidebar: React.FC = () => {
 
   useEffect(() => {
     let submenuMatched = false;
-    ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+    ["overview", "clinical", "management"].forEach((menuType) => {
+      let items = overviewItems;
+      if (menuType === "clinical") items = clinicalItems;
+      if (menuType === "management") items = managementItems;
+
       items.forEach((nav, index) => {
         if (nav.subItems) {
           nav.subItems.forEach((subItem) => {
             if (isActive(subItem.path)) {
               setOpenSubmenu({
-                type: menuType as "main" | "others",
+                type: menuType,
                 index,
               });
               submenuMatched = true;
@@ -130,7 +118,7 @@ const AppSidebar: React.FC = () => {
     }
   }, [openSubmenu]);
 
-  const handleSubmenuToggle = (index: number, menuType: "main" | "others") => {
+  const handleSubmenuToggle = (index: number, menuType: string) => {
     setOpenSubmenu((prevOpenSubmenu) => {
       if (
         prevOpenSubmenu &&
@@ -143,7 +131,7 @@ const AppSidebar: React.FC = () => {
     });
   };
 
-  const renderMenuItems = (items: NavItem[], menuType: "main" | "others") => (
+  const renderMenuItems = (items: NavItem[], menuType: string) => (
     <ul className="flex flex-col gap-4">
       {items.map((nav, index) => (
         <li key={nav.name}>
@@ -329,29 +317,47 @@ const AppSidebar: React.FC = () => {
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Menu"
+                  "Overview"
                 ) : (
                   <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(overviewItems, "overview")}
             </div>
-            {/* <div className="">
+
+            <div>
               <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                className={`mb-4 mt-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
                   !isExpanded && !isHovered
                     ? "lg:justify-center"
                     : "justify-start"
                 }`}
               >
                 {isExpanded || isHovered || isMobileOpen ? (
-                  "Others"
+                  "Clinical Practice"
                 ) : (
-                  <HorizontaLDots />
+                  <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {renderMenuItems(othersItems, "others")}
-            </div> */}
+              {renderMenuItems(clinicalItems, "clinical")}
+            </div>
+
+            <div>
+              <h2
+                className={`mb-4 mt-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                  !isExpanded && !isHovered
+                    ? "lg:justify-center"
+                    : "justify-start"
+                }`}
+              >
+                {isExpanded || isHovered || isMobileOpen ? (
+                  "Management"
+                ) : (
+                  <HorizontaLDots className="size-6" />
+                )}
+              </h2>
+              {renderMenuItems(managementItems, "management")}
+            </div>
           </div>
         </nav>
         {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}

@@ -95,41 +95,41 @@ export const testimonials = [
 export const features = [
   {
     icon: <BotMessageSquare />,
-    text: "AI-Powered Symptom Checker",
+    text: "Hospital Triage Assistant",
     description:
-      "Get instant health insights with our AI-driven symptom checker before consulting a doctor.",
+      "Start with guided symptom triage before moving into OPD, emergency, or specialist care.",
   },
   {
     icon: <QrCode />,
-    text: "Multi-Device Access",
+    text: "Unified Patient Portal",
     description:
-      "Access your medical records, prescriptions, and consultations seamlessly across mobile, desktop, and tablets.",
+      "Track appointments, admissions, lab reports, and billing from any device.",
     // description:
     //  <QrCode />,
   },
   {
     icon: <ShieldHalf />,
-    text: "Secure Digital Prescriptions",
+    text: "Clinical Records Hub",
     description:
-      "Receive encrypted digital prescriptions directly from doctors, ensuring authenticity and easy access.",
+      "Receive secure doctor notes, care plans, and discharge-ready documentation in one place.",
   },
   {
     icon: <BatteryCharging />,
-    text: "24/7 Virtual Consultations",
+    text: "Continuous Doctor Access",
     description:
-      "Connect with certified doctors anytime through instant chat and video consultations.",
+      "Move from appointment booking to live consultation and follow-up without leaving the platform.",
   },
   {
     icon: <PlugZap />,
-    text: "Integrated Lab Testing",
+    text: "Integrated Lab Workflows",
     description:
-      "Book lab tests with doorstep sample collection and get digital reports on your dashboard.",
+      "Doctors can order tests and patients can track progress and reports from the dashboard.",
   },
   {
     icon: <GlobeLock />,
-    text: "Personalized Health Insights",
+    text: "Smart Hospital Billing",
     description:
-      "Track and analyze your health metrics with AI-powered insights and recommendations.",
+      "Keep inpatient, department, and service charges visible with live balance updates.",
   },
 ];
 

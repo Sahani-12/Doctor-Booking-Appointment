@@ -3,13 +3,19 @@ import { useAuth } from "./hooks/useAuth";
 
 // Pages
 import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminDashboardPage from "./pages/AdminDashboardPage";
+import HospitalAdminDashboardPage from "./pages/HospitalAdminDashboardPage";
 import DoctorsPage from "./pages/DoctorsPage";
 import DoctorApprovalsPage from "./pages/DoctorApprovalsPage";
 import UsersPage from "./pages/UsersPage";
 import AppointmentsPage from "./pages/AppointmentsPage";
 import PaymentsPage from "./pages/PaymentsPage";
 import SettingsPage from "./pages/SettingsPage";
+import HospitalOperationsPage from "./pages/HospitalOperationsPage";
+import AdminDepartments from "./pages/AdminDepartments";
+import AdminAdmissions from "./pages/AdminAdmissions";
+import AdminLabOrders from "./pages/AdminLabOrders";
+import AdminBilling from "./pages/AdminBilling";
+import HospitalApprovalsPage from "./pages/HospitalApprovalsPage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token } = useAuth();
@@ -20,17 +26,54 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 export default function AppRoutes() {
   return (
     <Routes>
+      {/* Public */}
       <Route path="/login" element={<AdminLoginPage />} />
 
+      {/* Dashboard */}
       <Route
         path="/"
         element={
           <ProtectedRoute>
-            <AdminDashboardPage />
+            <HospitalAdminDashboardPage />
           </ProtectedRoute>
         }
       />
 
+      {/* Admin Modules */}
+      <Route
+        path="/admin/departments"
+        element={
+          <ProtectedRoute>
+            <AdminDepartments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/admissions"
+        element={
+          <ProtectedRoute>
+            <AdminAdmissions />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/lab-orders"
+        element={
+          <ProtectedRoute>
+            <AdminLabOrders />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/billing"
+        element={
+          <ProtectedRoute>
+            <AdminBilling />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Other Pages */}
       <Route
         path="/doctors"
         element={
@@ -77,6 +120,24 @@ export default function AppRoutes() {
       />
 
       <Route
+        path="/hospital-operations"
+        element={
+          <ProtectedRoute>
+            <HospitalOperationsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/admin/approvals"
+        element={
+          <ProtectedRoute>
+            <HospitalApprovalsPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/settings"
         element={
           <ProtectedRoute>
@@ -85,6 +146,7 @@ export default function AppRoutes() {
         }
       />
 
+      {/* Fallback */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

@@ -4,6 +4,7 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Checkbox from "../form/input/Checkbox";
+import { API_BASE } from "../../constants/api";
 
 export default function SignInForm() {
   const navigate = useNavigate();
@@ -22,21 +23,13 @@ export default function SignInForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const API_URL = (() => {
-    const raw =
-      import.meta.env.VITE_API_URL ||
-      "https://doctor-booking-appointment-i137.onrender.com";
-    const t = raw.replace(/\/$/, "");
-    return t.endsWith("/api") ? t : `${t}/api`;
-  })();
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

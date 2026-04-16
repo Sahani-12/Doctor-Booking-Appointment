@@ -21,6 +21,6 @@ export const authFetch = async (url, options = {}) => {
   // If it expires (401), send user back to login.
   sessionStorage.removeItem("token");
   sessionStorage.removeItem("user");
-  window.location.href = "#/login";
+  window.location.href = "/login";
   throw new Error("Unauthorized");
 };
