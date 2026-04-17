@@ -149,7 +149,13 @@ export default function DoctorProfile() {
           <Card>
             <CardContent className="pt-6 text-center">
               <Avatar className="h-28 w-28 mx-auto mb-4">
-                <AvatarImage src={doctorAvatarUrl(doctor)} />
+                <AvatarImage
+                  src={
+                    doctor?.profileImage ||
+                    doctor?.image ||
+                    doctorAvatarUrl(doctor)
+                  }
+                />
                 <AvatarFallback>{doctor.fullname?.slice(0, 2)}</AvatarFallback>
               </Avatar>
 

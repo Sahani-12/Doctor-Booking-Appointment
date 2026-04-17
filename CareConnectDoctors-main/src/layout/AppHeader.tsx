@@ -8,7 +8,7 @@ import UserDropdown from "../components/header/UserDropdown";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
-  const [doctorName, setDoctorName] = useState("");
+  const [doctorImage, setDoctorImage] = useState<string>("");
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
@@ -34,14 +34,31 @@ const AppHeader: React.FC = () => {
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
+    const handleProfileUpdated = () => {
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          if (parsedUser.profileImage) {
+            setDoctorImage(parsedUser.profileImage);
+          }
+        } catch (error) {
+          console.error("Failed to parse user data", error);
+        }
+      }
+    };
 
-    // Load doctor name from localStorage
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("profileUpdated", handleProfileUpdated);
+
+    // Load doctor image from localStorage
     const userData = localStorage.getItem("user");
     if (userData) {
       try {
         const parsedUser = JSON.parse(userData);
-        setDoctorName(parsedUser.fullname || "Doctor");
+        if (parsedUser.profileImage) {
+          setDoctorImage(parsedUser.profileImage);
+        }
       } catch (error) {
         console.error("Failed to parse user data", error);
       }
@@ -49,6 +66,7 @@ const AppHeader: React.FC = () => {
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("profileUpdated", handleProfileUpdated);
     };
   }, []);
 
@@ -95,20 +113,18 @@ const AppHeader: React.FC = () => {
             {/* Cross Icon */}
           </button>
 
-          <Link to="/home" className="lg:hidden">
-            {/* <img
-              className="dark:hidden"
-              src="./images/logo/logo1.png"
-              alt="Logo"
-            />
-            <img
-              className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
-              alt="Logo"
-            /> */}
-            <h3 className="text-4xl font-bold text-gray-900 dark:text-white">
-              CareConnect
-            </h3>
+          <Link to="/home" className="lg:hidden flex items-center gap-2">
+            {doctorImage ? (
+              <img
+                src={doctorImage}
+                alt="Doctor Logo"
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            ) : (
+              <h3 className="text-4xl font-bold text-gray-900 dark:text-white">
+                CareConnect
+              </h3>
+            )}
           </Link>
 
           <button
@@ -177,26 +193,6 @@ const AppHeader: React.FC = () => {
             {/* <!-- Dark Mode Toggler --> */}
             <NotificationDropdown />
             {/* <!-- Notification Menu Area --> */}
-          </div>
-
-          {/* <!-- Doctor Name Display --> */}
-          <div className="hidden md:flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 border border-blue-100 dark:border-gray-600">
-            <svg
-              className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            </svg>
-            <span className="text-sm font-bold text-gray-900 dark:text-white">
-              {doctorName}
-            </span>
           </div>
 
           {/* <!-- User Area --> */}

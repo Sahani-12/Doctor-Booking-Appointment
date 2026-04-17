@@ -43,10 +43,7 @@ const Consult = () => {
       .catch(() => {});
   }, [initial?._id]);
 
-  const minDate = useMemo(
-    () => new Date().toISOString().split("T")[0],
-    []
-  );
+  const minDate = useMemo(() => new Date().toISOString().split("T")[0], []);
 
   // Fetch slots
   useEffect(() => {
@@ -62,7 +59,7 @@ const Consult = () => {
       try {
         const res = await authFetch(
           `/appointments/slots/${doctor._id}/${formData.date}`,
-          { method: "GET" }
+          { method: "GET" },
         );
         const data = await res.json();
         const list = data.data?.slots ?? [];
@@ -77,8 +74,7 @@ const Consult = () => {
     };
   }, [doctor?._id, formData.date]);
 
-  const fee =
-    Number(doctor?.fee ?? doctor?.consultationFee ?? 499) || 499;
+  const fee = Number(doctor?.fee ?? doctor?.consultationFee ?? 499) || 499;
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -121,14 +117,12 @@ const Consult = () => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.data.success) {
         const apptId =
-          response.data.appointmentId ||
-          response.data.data?._id ||
-          null;
+          response.data.appointmentId || response.data.data?._id || null;
 
         if (!apptId) {
           alert("Appointment booked successfully.");
@@ -143,7 +137,7 @@ const Consult = () => {
       console.error("Error:", error);
       alert(
         error.response?.data?.message ||
-          "Could not book this slot. Try another time."
+          "Could not book this slot. Try another time.",
       );
     } finally {
       setBookingLoading(false);
@@ -207,23 +201,19 @@ const Consult = () => {
           <div className="bg-gradient-to-r from-teal-600 to-emerald-600 p-6 text-white">
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <img
-                src={avatar}
+                src={doctor?.profileImage || doctor?.image || avatar}
                 alt={doctor.fullname}
                 className="w-24 h-24 rounded-2xl object-cover shadow-lg"
               />
               <div>
-                <h2 className="text-2xl font-bold">
-                  {doctor.fullname}
-                </h2>
+                <h2 className="text-2xl font-bold">{doctor.fullname}</h2>
                 <p>{spec || "Specialist"}</p>
                 <div className="flex gap-3 mt-2 text-sm">
                   <span className="flex items-center gap-1">
-                    <MapPin size={14} />{" "}
-                    {doctor.city || "India"}
+                    <MapPin size={14} /> {doctor.city || "India"}
                   </span>
                   <span className="flex items-center gap-1">
-                    <ShieldCheck size={14} />{" "}
-                    {doctor.experience || "—"} yrs
+                    <ShieldCheck size={14} /> {doctor.experience || "—"} yrs
                   </span>
                 </div>
                 <div className="mt-3 text-lg font-bold flex items-center gap-1">
@@ -252,9 +242,7 @@ const Consult = () => {
             </div>
 
             <div>
-              <label className="font-semibold">
-                Reason for Visit
-              </label>
+              <label className="font-semibold">Reason for Visit</label>
               <textarea
                 name="problem"
                 rows={3}
@@ -294,9 +282,7 @@ const Consult = () => {
               disabled={bookingLoading}
               className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-3 rounded-xl font-semibold"
             >
-              {bookingLoading
-                ? "Booking..."
-                : "Confirm & Pay"}
+              {bookingLoading ? "Booking..." : "Confirm & Pay"}
             </button>
           </form>
         </div>

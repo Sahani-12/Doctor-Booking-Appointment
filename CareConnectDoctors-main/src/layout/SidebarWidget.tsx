@@ -6,17 +6,24 @@ export default function SidebarWidget() {
   const [doctor, setDoctor] = useState<{
     fullname?: string;
     email?: string;
+    profileImage?: string;
   } | null>(null);
 
   useEffect(() => {
-    try {
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        setDoctor(JSON.parse(userData));
+    const loadUser = () => {
+      try {
+        const userData = localStorage.getItem("user");
+        if (userData) {
+          setDoctor(JSON.parse(userData));
+        }
+      } catch (err) {
+        console.error("Failed to parse user data");
       }
-    } catch (err) {
-      console.error("Failed to parse user data");
-    }
+    };
+
+    loadUser();
+    window.addEventListener("profileUpdated", loadUser);
+    return () => window.removeEventListener("profileUpdated", loadUser);
   }, []);
 
   const handleLogout = () => {
@@ -26,9 +33,17 @@ export default function SidebarWidget() {
 
   return (
     <div className="mx-auto mb-10 w-full max-w-60 rounded-2xl bg-slate-50 px-4 py-5 text-center dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
-        <UserCircle className="h-7 w-7" />
-      </div>
+      {doctor?.profileImage ? (
+        <img
+          src={doctor.profileImage}
+          alt="Profile"
+          className="mx-auto mb-3 h-14 w-14 rounded-full object-cover border-2 border-brand-500 shadow-sm"
+        />
+      ) : (
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-brand-100 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
+          <UserCircle className="h-7 w-7" />
+        </div>
+      )}
       <h3 className="mb-1 text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">
         {doctor?.fullname || "Doctor Profile"}
       </h3>

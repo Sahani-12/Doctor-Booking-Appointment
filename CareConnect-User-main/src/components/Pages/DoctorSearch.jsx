@@ -7,6 +7,7 @@ import axios from "axios";
 import BASE_URL from "@/constants/api";
 import Loader1 from "../../ui/DoctorsPageLoader";
 import BottomLoader from "../../ui/DoctorsPageLoader2";
+import { doctorAvatarUrl } from "@/utils/mediaUrl";
 
 const DoctorSearch = () => {
   const location = useLocation();
@@ -47,7 +48,25 @@ const DoctorSearch = () => {
 
       const newDoctors = response.data?.data || [];
 
-      setDoctors((prev) => (append ? [...prev, ...newDoctors] : newDoctors));
+      // Ensure profileImage is mapped to image so DocterCard displays it correctly
+      const formattedDoctors = newDoctors.map((doc) => {
+        const validImage =
+          doc.profileImage || doc.image || doc.avatar || doctorAvatarUrl(doc);
+        return {
+          ...doc,
+          profileImage: validImage,
+          image: validImage,
+          avatar: validImage,
+          img: validImage,
+          photo: validImage,
+          picture: validImage,
+          profilePic: validImage,
+        };
+      });
+
+      setDoctors((prev) =>
+        append ? [...prev, ...formattedDoctors] : formattedDoctors,
+      );
 
       setHasMore(pageNum < (response.data?.pagination?.totalPages || 1));
     } catch (err) {

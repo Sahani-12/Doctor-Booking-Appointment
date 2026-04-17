@@ -28,7 +28,7 @@ const labOrderSchema = new mongoose.Schema(
     doctor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Doctor",
-      required: true,
+      default: null,
     },
     department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
     appointment: { type: mongoose.Schema.Types.ObjectId, ref: "Appointment" },
@@ -40,7 +40,13 @@ const labOrderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["ordered", "sample-collected", "processing", "completed", "cancelled"],
+      enum: [
+        "ordered",
+        "sample-collected",
+        "processing",
+        "completed",
+        "cancelled",
+      ],
       default: "ordered",
     },
     tests: [labTestSchema],

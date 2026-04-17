@@ -13,6 +13,7 @@ import {
   Clock,
   Settings,
   Edit2,
+  Camera,
 } from "lucide-react";
 import { Button } from "../components/ui/modern/Button";
 import { Modal } from "../components/ui/modern/Modal";
@@ -29,6 +30,7 @@ interface DoctorProfile {
   licenseNumber: string;
   experience: number;
   qualifications: string;
+  profileImage?: string;
   availability: {
     day: string;
     startTime: string;
@@ -47,6 +49,8 @@ export default function DoctorProfilePage() {
   const [success, setSuccess] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [updateKey, setUpdateKey] = useState(0);
+  const [previewImage, setPreviewImage] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -85,6 +89,7 @@ export default function DoctorProfilePage() {
 
       const data = await response.json();
       setProfile({ ...data.data, _fetched: Date.now() });
+      setPreviewImage(data.data.profileImage || "");
       setFormData({
         name: data.data.fullname || data.data.name || "",
         phone: data.data.phone || "",
@@ -108,10 +113,37 @@ export default function DoctorProfilePage() {
     }
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPreviewImage(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    // Since the backend route /api/doctors/upload-profile-image is missing,
+    // we will return the base64 string generated during file selection.
+    // The update API (PUT /api/doctors/profile) will save this base64 string
+    // directly into the doctor's profileImage field in the database.
+    return new Promise((resolve) => resolve(previewImage));
+  };
+
   const handleUpdate = async () => {
     try {
       setUpdating(true);
       setError("");
+
+      let profileImageUrl = previewImage;
+
+      // Upload image if a new file was selected
+      if (selectedFile) {
+        profileImageUrl = await uploadImage(selectedFile);
+      }
 
       const updateData = {
         fullname: formData.name,
@@ -128,6 +160,7 @@ export default function DoctorProfilePage() {
         experience: formData.experience,
         description: formData.bio,
         licenseNumber: formData.licenseNumber,
+        profileImage: profileImageUrl,
       };
 
       const response = await fetch(`${API_BASE}/doctors/profile`, {
@@ -145,9 +178,25 @@ export default function DoctorProfilePage() {
 
       const data = await response.json();
       setProfile({ ...data.data, _updated: Date.now() });
+      setSelectedFile(null);
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
       setUpdateKey((prev) => prev + 1);
+
+      // Update localStorage with new profile image
+      const userData = localStorage.getItem("user");
+      if (userData) {
+        try {
+          const parsedUser = JSON.parse(userData);
+          parsedUser.profileImage = profileImageUrl;
+          localStorage.setItem("user", JSON.stringify(parsedUser));
+        } catch (e) {
+          console.error("Failed to update localStorage", e);
+        }
+      }
+
+      // Trigger header re-render by dispatching custom event
+      window.dispatchEvent(new Event("profileUpdated"));
       console.log("✅ Profile updated");
 
       // Clear success message after 3 seconds
@@ -206,8 +255,65 @@ export default function DoctorProfilePage() {
           <>
             {/* Profile Card */}
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg p-8 mb-6">
+              {/* Profile Image Section */}
+              <div className="mb-8">
+                <div className="flex flex-col md:flex-row md:items-end gap-6">
+                  {/* Profile Image Display */}
+                  <div className="flex flex-col items-center">
+                    <div className="relative">
+                      {previewImage ? (
+                        <img
+                          src={previewImage}
+                          alt="Doctor Profile"
+                          className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
+                        />
+                      ) : (
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center border-4 border-blue-500">
+                          <User size={64} className="text-white" />
+                        </div>
+                      )}
+                      {isEditing && (
+                        <label className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-700 p-2 rounded-full cursor-pointer transition">
+                          <Camera size={20} className="text-white" />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
+                    </div>
+                    {isEditing && (
+                      <p className="text-xs text-slate-400 mt-2">
+                        Click camera to upload
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Approval Status */}
+                  <div className="flex-1">
+                    <h2 className="text-2xl font-bold text-white">
+                      {profile.fullname || profile.name}
+                    </h2>
+                    <p className="text-slate-400 mb-4">
+                      {Array.isArray(profile.specialization)
+                        ? profile.specialization.join(", ")
+                        : profile.specialization}
+                    </p>
+                    <Badge
+                      variant={profile.isApproved ? "success" : "warning"}
+                      size="lg"
+                      icon
+                    >
+                      {profile.isApproved ? "Approved" : "Pending Approval"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+
               {/* Approval Status */}
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6 flex items-center justify-between hidden">
                 <div>
                   <h2 className="text-2xl font-bold text-white">
                     {profile.fullname || profile.name}

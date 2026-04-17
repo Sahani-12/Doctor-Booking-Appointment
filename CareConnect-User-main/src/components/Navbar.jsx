@@ -20,14 +20,30 @@ const Navbar = () => {
 
   const [userName, setUserName] = useState(() => {
     const storedUser = sessionStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser).fullname : null;
+    if (storedUser) {
+      return JSON.parse(storedUser).fullname || null;
+    }
+    // Fallback to localStorage if sessionStorage is empty
+    const cachedUser = localStorage.getItem("userProfile");
+    if (cachedUser) {
+      return JSON.parse(cachedUser).fullname || null;
+    }
+    return null;
   });
 
   const [userImage, setUserImage] = useState(() => {
     const storedUser = sessionStorage.getItem("user");
-    return storedUser
-      ? JSON.parse(storedUser).image || JSON.parse(storedUser).avatar
-      : null;
+    if (storedUser) {
+      const parsed = JSON.parse(storedUser);
+      return parsed.profileImage || parsed.image || parsed.avatar || null;
+    }
+    // Fallback to localStorage if sessionStorage is empty
+    const cachedUser = localStorage.getItem("userProfile");
+    if (cachedUser) {
+      const parsed = JSON.parse(cachedUser);
+      return parsed.profileImage || parsed.image || parsed.avatar || null;
+    }
+    return null;
   });
 
   // 🌙 Theme State
@@ -52,7 +68,15 @@ const Navbar = () => {
       if (storedUser) {
         const parsed = JSON.parse(storedUser);
         setUserName(parsed.fullname);
-        setUserImage(parsed.image || parsed.avatar);
+        setUserImage(parsed.profileImage || parsed.image || parsed.avatar);
+      } else {
+        // Fallback to localStorage if sessionStorage is empty
+        const cachedUser = localStorage.getItem("userProfile");
+        if (cachedUser) {
+          const parsed = JSON.parse(cachedUser);
+          setUserName(parsed.fullname);
+          setUserImage(parsed.profileImage || parsed.image || parsed.avatar);
+        }
       }
     };
     window.addEventListener("userUpdated", handleUserUpdate);

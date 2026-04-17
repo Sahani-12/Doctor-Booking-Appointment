@@ -11,6 +11,9 @@ const {
   uploadDocument,
   deleteDocument,
   getDashboardOverview,
+  createUserLabOrder,
+  getUserLabOrders,
+  getUserBills,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -33,6 +36,13 @@ router.get("/dashboard/overview", protect, getDashboardOverview);
 
 // Appointment routes
 router.get("/appointments", protect, getUserAppointments);
+
+// Lab order routes
+router.get("/lab-orders", protect, getUserLabOrders);
+router.post("/lab-orders", protect, createUserLabOrder);
+
+// Bills routes
+router.get("/bills", protect, getUserBills);
 
 // Document routes
 router.get("/documents", protect, getUserDocuments);

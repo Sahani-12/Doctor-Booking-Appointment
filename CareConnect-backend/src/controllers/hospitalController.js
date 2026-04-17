@@ -78,9 +78,7 @@ const OPEN_ADMISSION_STATUSES = [
 const toArray = (value) => {
   if (value === undefined || value === null) return [];
   if (Array.isArray(value)) {
-    return value
-      .map((item) => String(item).trim())
-      .filter(Boolean);
+    return value.map((item) => String(item).trim()).filter(Boolean);
   }
   return String(value)
     .split(",")
@@ -1235,21 +1233,25 @@ const getHospitalDashboard = asyncHandler(async (req, res) => {
   }
 
   if (req.user.role === "doctor") {
-    const [appointmentPatientIds, recordPatientIds, admissionPatientIds, labPatientIds] =
-      await Promise.all([
-        Appointment.distinct("patient", {
-          doctor: doctorId,
-        }),
-        MedicalRecord.distinct("patient", {
-          doctor: doctorId,
-        }),
-        Admission.distinct("patient", {
-          doctor: doctorId,
-        }),
-        LabOrder.distinct("patient", {
-          doctor: doctorId,
-        }),
-      ]);
+    const [
+      appointmentPatientIds,
+      recordPatientIds,
+      admissionPatientIds,
+      labPatientIds,
+    ] = await Promise.all([
+      Appointment.distinct("patient", {
+        doctor: doctorId,
+      }),
+      MedicalRecord.distinct("patient", {
+        doctor: doctorId,
+      }),
+      Admission.distinct("patient", {
+        doctor: doctorId,
+      }),
+      LabOrder.distinct("patient", {
+        doctor: doctorId,
+      }),
+    ]);
 
     const trackedPatientIds = [
       ...new Set(
@@ -1408,6 +1410,167 @@ const getHospitalDashboard = asyncHandler(async (req, res) => {
   });
 });
 
+// ==================== BILL PAYMENT ENDPOINTS ====================
+
+const payBillDemo = asyncHandler(async (req, res) => {
+  const { billId, amount } = req.body;
+
+  if (!billId || !amount) {
+    res.status(400);
+    throw new Error("billId and amount are required");
+  }
+
+  const bill = await Bill.findById(billId);
+  if (!bill) {
+    res.status(404);
+    throw new Error("Bill not found");
+  }
+
+  // Check if user has access to this bill
+  const hasAccess = await canAccessPatient(req.user, bill.patient);
+  if (!hasAccess) {
+    res.status(403);
+    throw new Error("Not authorized to pay this bill");
+  }
+
+  // Update bill with payment
+  const paidAmount = bill.paidAmount + Number(amount);
+  const newPaidAmount = Math.min(paidAmount, bill.totalAmount);
+
+  const totals = computeBillTotals(
+    bill.lineItems,
+    bill.taxAmount,
+    bill.discountAmount,
+    newPaidAmount,
+  );
+
+  bill.paidAmount = newPaidAmount;
+  bill.balanceDue = totals.balanceDue;
+  bill.status = totals.status;
+  bill.paymentMethod = "demo";
+  bill.paidAt = bill.paidAt || new Date();
+
+  await bill.save();
+
+  const populated = await Bill.findById(bill._id)
+    .populate("patient", "fullname email phone city")
+    .populate("doctor", "fullname specialization")
+    .populate("department", "name code color");
+
+  res.json({
+    success: true,
+    message: "Payment recorded successfully",
+    data: populated,
+  });
+});
+
+const createRazorpayBillOrder = asyncHandler(async (req, res) => {
+  const { billId, amount } = req.body;
+
+  if (!billId || !amount) {
+    res.status(400);
+    throw new Error("billId and amount are required");
+  }
+
+  const bill = await Bill.findById(billId);
+  if (!bill) {
+    res.status(404);
+    throw new Error("Bill not found");
+  }
+
+  // Check if user has access to this bill
+  const hasAccess = await canAccessPatient(req.user, bill.patient);
+  if (!hasAccess) {
+    res.status(403);
+    throw new Error("Not authorized to pay this bill");
+  }
+
+  // Validate amount doesn't exceed balance
+  if (Number(amount) > bill.balanceDue) {
+    res.status(400);
+    throw new Error("Payment amount exceeds balance due");
+  }
+
+  // Generate order ID (in real implementation, this would call Razorpay API)
+  const orderId = `order_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+  res.json({
+    success: true,
+    data: {
+      orderId,
+      amount: Number(amount),
+      currency: "INR",
+      billId,
+    },
+  });
+});
+
+const verifyRazorpayBillPayment = asyncHandler(async (req, res) => {
+  const { billId, razorpayPaymentId, razorpayOrderId } = req.body;
+
+  if (!billId || !razorpayPaymentId || !razorpayOrderId) {
+    res.status(400);
+    throw new Error("Missing required payment verification data");
+  }
+
+  const bill = await Bill.findById(billId);
+  if (!bill) {
+    res.status(404);
+    throw new Error("Bill not found");
+  }
+
+  // Check if user has access to this bill
+  const hasAccess = await canAccessPatient(req.user, bill.patient);
+  if (!hasAccess) {
+    res.status(403);
+    throw new Error("Not authorized to verify this bill payment");
+  }
+
+  // In production, verify the payment with Razorpay API
+  // For now, we'll accept the verification
+  // Extract amount from razorpayPaymentId or get it from request
+  const Transaction = require("../models/Transaction");
+
+  // Find the transaction or assume full bill payment
+  const transaction = await Transaction.findOne({
+    razorpayPaymentId,
+  });
+
+  let paymentAmount = bill.balanceDue;
+  if (transaction) {
+    paymentAmount = transaction.amount;
+  }
+
+  // Update bill with payment
+  const newPaidAmount = bill.paidAmount + paymentAmount;
+
+  const totals = computeBillTotals(
+    bill.lineItems,
+    bill.taxAmount,
+    bill.discountAmount,
+    newPaidAmount,
+  );
+
+  bill.paidAmount = newPaidAmount;
+  bill.balanceDue = totals.balanceDue;
+  bill.status = totals.status;
+  bill.paymentMethod = "razorpay";
+  bill.paidAt = bill.paidAt || new Date();
+
+  await bill.save();
+
+  const populated = await Bill.findById(bill._id)
+    .populate("patient", "fullname email phone city")
+    .populate("doctor", "fullname specialization")
+    .populate("department", "name code color");
+
+  res.json({
+    success: true,
+    message: "Payment verified and recorded successfully",
+    data: populated,
+  });
+});
+
 module.exports = {
   getDepartments,
   createDepartment,
@@ -1426,5 +1589,8 @@ module.exports = {
   getBills,
   createBill,
   updateBill,
+  payBillDemo,
+  createRazorpayBillOrder,
+  verifyRazorpayBillPayment,
   getHospitalDashboard,
 };

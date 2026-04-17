@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../Navbar";
 import { Receipt, Loader2, CreditCard } from "lucide-react";
 import BASE_URL from "@/constants/api";
+import BillPaymentModal from "../Payment/BillPaymentModal";
 
 // Helper function to format currency
 const money = (value = 0) =>
@@ -16,40 +17,68 @@ export default function HospitalBillsPage() {
   const [balance, setBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedBill, setSelectedBill] = useState(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(null);
+
+  const fetchBills = async (isBackground = false) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      if (!token) {
+        setError("You must be logged in to view bills.");
+        if (!isBackground) setLoading(false);
+        return;
+      }
+      // Fetch user's own bills
+      const res = await fetch(`${BASE_URL}/users/bills`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success && data.data) {
+        setBills(data.data);
+        setLastUpdate(new Date().toLocaleTimeString());
+        // Calculate total outstanding balance
+        const totalDue = data.data.reduce(
+          (sum, bill) => sum + (bill.balanceDue || 0),
+          0,
+        );
+        setBalance(totalDue);
+        if (!isBackground) setError("");
+      } else {
+        throw new Error(data.message || "Failed to fetch bills.");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      if (!isBackground) setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBills = async () => {
-      try {
-        const token = sessionStorage.getItem("token");
-        if (!token) {
-          setError("You must be logged in to view bills.");
-          setLoading(false);
-          return;
-        }
-        // The controller uses role filter, so this will get user-specific bills
-        const res = await fetch(`${BASE_URL}/hospital/bills`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
-        if (data.success && data.data) {
-          setBills(data.data);
-          // Calculate total outstanding balance
-          const totalDue = data.data.reduce(
-            (sum, bill) => sum + (bill.balanceDue || 0),
-            0,
-          );
-          setBalance(totalDue);
-        } else {
-          throw new Error(data.message || "Failed to fetch bills.");
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchBills();
+    const intervalId = setInterval(() => fetchBills(true), 5000);
+    return () => clearInterval(intervalId);
   }, []);
+
+  const handlePaymentSuccess = (updatedBill) => {
+    // Refresh bills list after successful payment
+    const updatedBills = bills.map((bill) =>
+      bill._id === updatedBill._id ? updatedBill : bill,
+    );
+    setBills(updatedBills);
+    const totalDue = updatedBills.reduce(
+      (sum, bill) => sum + (bill.balanceDue || 0),
+      0,
+    );
+    setBalance(totalDue);
+  };
+
+  const openPaymentModal = (bill) => {
+    if (bill.balanceDue > 0) {
+      setSelectedBill(bill);
+      setPaymentModalOpen(true);
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status?.toLowerCase()) {
@@ -67,13 +96,26 @@ export default function HospitalBillsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
+      <BillPaymentModal
+        open={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        bill={selectedBill}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
       <div className="container mx-auto p-4 lg:p-6 mt-4">
         <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
           <h1 className="text-4xl font-bold text-slate-900 dark:text-white">
             Hospital Bills
           </h1>
-          <div className="px-6 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold text-lg flex items-center gap-2">
-            <CreditCard size={20} /> Outstanding Balance: {money(balance)}
+          <div className="flex flex-col gap-2">
+            <div className="px-6 py-3 bg-primary/10 text-primary border border-primary/20 rounded-xl font-bold text-lg flex items-center gap-2">
+              <CreditCard size={20} /> Outstanding Balance: {money(balance)}
+            </div>
+            {lastUpdate && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 text-right">
+                Last updated: {lastUpdate}
+              </p>
+            )}
           </div>
         </div>
 
@@ -142,6 +184,14 @@ export default function HospitalBillsPage() {
                     </p>
                   </div>
                 </div>
+                {bill.balanceDue > 0 && (
+                  <button
+                    onClick={() => openPaymentModal(bill)}
+                    className="mt-4 w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition"
+                  >
+                    Pay Now {money(bill.balanceDue)}
+                  </button>
+                )}
               </div>
             ))}
           </div>

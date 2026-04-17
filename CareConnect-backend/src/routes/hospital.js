@@ -19,6 +19,9 @@ const {
   getBills,
   createBill,
   updateBill,
+  payBillDemo,
+  createRazorpayBillOrder,
+  verifyRazorpayBillPayment,
   getHospitalDashboard,
 } = require("../controllers/hospitalController");
 
@@ -33,8 +36,16 @@ router.get("/patients/:patientId/summary", getPatientSummary);
 router.get("/patients", authorize("doctor", "admin"), getPatients);
 
 router.get("/medical-records", getMedicalRecords);
-router.post("/medical-records", authorize("doctor", "admin"), createMedicalRecord);
-router.put("/medical-records/:id", authorize("doctor", "admin"), updateMedicalRecord);
+router.post(
+  "/medical-records",
+  authorize("doctor", "admin"),
+  createMedicalRecord,
+);
+router.put(
+  "/medical-records/:id",
+  authorize("doctor", "admin"),
+  updateMedicalRecord,
+);
 
 router.get("/admissions", getAdmissions);
 router.post("/admissions", authorize("doctor", "admin"), createAdmission);
@@ -45,6 +56,9 @@ router.post("/lab-orders", authorize("doctor", "admin"), createLabOrder);
 router.put("/lab-orders/:id", authorize("doctor", "admin"), updateLabOrder);
 
 router.get("/bills", getBills);
+router.post("/bills/pay", payBillDemo);
+router.post("/bills/razorpay-order", createRazorpayBillOrder);
+router.post("/bills/verify-razorpay", verifyRazorpayBillPayment);
 router.post("/bills", authorize("admin"), createBill);
 router.put("/bills/:id", authorize("admin"), updateBill);
 

@@ -4,6 +4,7 @@ const User = require("../models/User");
 const Doctor = require("../models/Doctor");
 const Appointment = require("../models/Appointment");
 const Document = require("../models/Document");
+const LabOrder = require("../models/LabOrder");
 
 // @desc Get user profile
 // @route GET /api/users/profile
@@ -43,16 +44,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     throw new Error("This endpoint is for patients only");
   }
 
-  const {
-    fullname,
-    phone,
-    city,
-    DOB,
-    age,
-    gender,
-    image,
-    avatar,
-  } = req.body;
+  const { fullname, phone, city, DOB, age, gender, image, avatar } = req.body;
 
   const imageVal = image !== undefined ? image : avatar;
 
@@ -101,7 +93,7 @@ const getUserAppointments = asyncHandler(async (req, res) => {
   const appointments = await Appointment.find({
     patient: req.user._id,
   })
-    .populate("doctor", "fullname email city specialization")
+    .populate("doctor", "fullname email city specialization profileImage")
     .sort({ date: -1 });
 
   res.json({
@@ -231,7 +223,7 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
   )
     .populate(
       req.user.role === "doctor" ? "patient" : "doctor",
-      "fullname email city",
+      "fullname email city profileImage",
     )
     .limit(5)
     .sort({ date: 1 });
@@ -246,6 +238,97 @@ const getDashboardOverview = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc Book a lab test
+// @route POST /api/users/lab-orders
+const createUserLabOrder = asyncHandler(async (req, res) => {
+  if (req.user.role !== "user") {
+    res.status(403);
+    throw new Error("This endpoint is for patients only");
+  }
+
+  const { testName, notes, doctorId, priority } = req.body;
+
+  if (!testName || testName.trim() === "") {
+    res.status(400);
+    throw new Error("Test name is required");
+  }
+
+  // Generate order number
+  const generateRef = (prefix) => {
+    const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+    return `${prefix}-${Date.now().toString().slice(-6)}-${random}`;
+  };
+
+  // Prepare lab order data
+  const labOrderData = {
+    orderNumber: generateRef("LAB"),
+    patient: req.user._id,
+    status: "ordered",
+    priority: priority || "routine",
+    clinicalNotes: notes || "",
+    tests: [{ name: testName }],
+    orderedAt: new Date(),
+  };
+
+  // Add doctor if provided
+  if (doctorId) {
+    labOrderData.doctor = doctorId;
+  }
+
+  const labOrder = await LabOrder.create(labOrderData);
+
+  const populated = await LabOrder.findById(labOrder._id)
+    .populate("patient", "fullname email phone city")
+    .populate("doctor", "fullname specialization profileImage")
+    .populate("department", "name code color");
+
+  res.status(201).json({
+    success: true,
+    message: "Lab test booked successfully",
+    data: populated,
+  });
+});
+
+// @desc Get user's lab orders
+// @route GET /api/users/lab-orders
+const getUserLabOrders = asyncHandler(async (req, res) => {
+  if (req.user.role !== "user") {
+    res.status(403);
+    throw new Error("This endpoint is for patients only");
+  }
+
+  const labOrders = await LabOrder.find({ patient: req.user._id })
+    .populate("patient", "fullname email phone city")
+    .populate("doctor", "fullname specialization profileImage")
+    .populate("department", "name code color")
+    .sort({ orderedAt: -1 });
+
+  res.json({
+    success: true,
+    data: labOrders,
+  });
+});
+
+// @desc Get user's bills
+// @route GET /api/users/bills
+const getUserBills = asyncHandler(async (req, res) => {
+  if (req.user.role !== "user") {
+    res.status(403);
+    throw new Error("This endpoint is for patients only");
+  }
+
+  const Bill = require("../models/Bill");
+  const userBills = await Bill.find({ patient: req.user._id })
+    .populate("patient", "fullname email phone city")
+    .populate("department", "name code")
+    .sort({ issuedAt: -1 });
+
+  res.json({
+    success: true,
+    data: userBills,
+  });
+});
+
 module.exports = {
   getUserProfile,
   getUserById,
@@ -256,4 +339,7 @@ module.exports = {
   uploadDocument,
   deleteDocument,
   getDashboardOverview,
+  createUserLabOrder,
+  getUserLabOrders,
+  getUserBills,
 };

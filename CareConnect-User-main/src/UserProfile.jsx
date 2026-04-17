@@ -51,9 +51,34 @@ export default function UserProfile() {
           gender: data.data.gender || "male",
           image: data.data.image || data.data.avatar || "",
         });
+        // Update localStorage cache
+        localStorage.setItem("userProfile", JSON.stringify(data.data));
+      } else if (localStorage.getItem("userProfile")) {
+        // Fallback to localStorage if backend fetch fails
+        const cached = JSON.parse(localStorage.getItem("userProfile"));
+        setFormData({
+          fullname: cached.fullname || "",
+          phone: cached.phone || "",
+          city: cached.city || "",
+          age: cached.age || "",
+          gender: cached.gender || "male",
+          image: cached.image || cached.avatar || "",
+        });
       }
       setLoading(false);
     } catch (err) {
+      // Fallback to localStorage if network error
+      if (localStorage.getItem("userProfile")) {
+        const cached = JSON.parse(localStorage.getItem("userProfile"));
+        setFormData({
+          fullname: cached.fullname || "",
+          phone: cached.phone || "",
+          city: cached.city || "",
+          age: cached.age || "",
+          gender: cached.gender || "male",
+          image: cached.image || cached.avatar || "",
+        });
+      }
       setLoading(false);
     }
   };
@@ -95,16 +120,37 @@ export default function UserProfile() {
 
       if (data.success) {
         setMessage({ type: "success", text: "Profile updated successfully!" });
-        const user = JSON.parse(sessionStorage.getItem("user") || "{}");
-        sessionStorage.setItem(
-          "user",
-          JSON.stringify({
-            ...user,
-            fullname: formData.fullname,
-            image: formData.image,
-          }),
+
+        // Update with backend response data (not just local formData)
+        const updatedUserFromServer = data.data;
+
+        // Update local state with server response
+        setFormData({
+          fullname: updatedUserFromServer.fullname || "",
+          phone: updatedUserFromServer.phone || "",
+          city: updatedUserFromServer.city || "",
+          age: updatedUserFromServer.age || "",
+          gender: updatedUserFromServer.gender || "male",
+          image:
+            updatedUserFromServer.image || updatedUserFromServer.avatar || "",
+        });
+
+        // Update sessionStorage with server response
+        sessionStorage.setItem("user", JSON.stringify(updatedUserFromServer));
+
+        // Also save to localStorage for persistence across sessions
+        localStorage.setItem(
+          "userProfile",
+          JSON.stringify(updatedUserFromServer),
         );
+
+        // Dispatch event to update navbar with new image
         window.dispatchEvent(new Event("userUpdated"));
+
+        // Clear message after 3 seconds
+        setTimeout(() => {
+          setMessage({ type: "", text: "" });
+        }, 3000);
       } else {
         setMessage({ type: "error", text: data.message || "Update failed." });
       }

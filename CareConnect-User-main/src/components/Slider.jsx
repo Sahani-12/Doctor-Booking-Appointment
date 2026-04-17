@@ -201,7 +201,7 @@ const Slider = () => {
                     className="flex gap-4 items-start p-4 rounded-xl border border-border bg-background hover:shadow-lg transition-all hover:-translate-y-1"
                   >
                     <img
-                      src={doctorAvatarUrl(doc)}
+                    src={doc?.profileImage || doc?.image || doctorAvatarUrl(doc)}
                       alt={doc.fullname}
                       className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
                     />

@@ -32,14 +32,42 @@ const Login = () => {
         const user = data.data.user || data.data;
         const token = data.data.token;
 
+        // Clear previous user's data from localStorage
+        localStorage.removeItem("userProfile");
         sessionStorage.setItem("user", JSON.stringify(user));
         sessionStorage.setItem("token", token);
+        // Save to localStorage for persistence across sessions
+        localStorage.setItem("userProfile", JSON.stringify(user));
+
+        // Fetch full profile to get latest image/avatar
+        try {
+          const profileResponse = await fetch(`${BASE_URL}/users/profile`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const profileData = await profileResponse.json();
+          if (profileData.success && profileData.data) {
+            const fullUserData = {
+              ...user,
+              image:
+                profileData.data.profileImage ||
+                profileData.data.image ||
+                profileData.data.avatar ||
+                user.profileImage ||
+                user.image,
+              avatar: profileData.data.avatar || user.avatar,
+            };
+            sessionStorage.setItem("user", JSON.stringify(fullUserData));
+            localStorage.setItem("userProfile", JSON.stringify(fullUserData));
+          }
+        } catch (profileError) {
+          console.log("Profile fetch failed, using login data", profileError);
+        }
 
         const userName = user.fullname
           ? encodeURIComponent(user.fullname)
           : "profile";
 
-        navigate(`/user-dashboard/${userName}`);
+        navigate(`/`);
       } else {
         alert(data.message || data.error || "Login failed");
       }

@@ -13,7 +13,7 @@ export function resolveMediaUrl(url) {
   if (url == null || typeof url !== "string") return "";
   const u = url.trim();
   if (!u) return "";
-  if (/^https?:\/\//i.test(u)) return u;
+  if (/^https?:\/\//i.test(u) || u.startsWith("data:")) return u;
   const origin = getApiOrigin();
   if (!origin) return u;
   return u.startsWith("/") ? `${origin}${u}` : `${origin}/${u}`;
