@@ -1,6 +1,6 @@
 const express = require("express");
-const axios = require("axios");
 const Doctor = require("../models/Doctor");
+const { getAICompletion } = require("../utils/aiHelper");
 
 const router = express.Router();
 
@@ -43,11 +43,23 @@ const detectSpecialization = (message) => {
   return null;
 };
 
+// Fallback reply if AI provider is unreachable
+const getFallbackReply = (message, specialization) => {
+  const text = message.toLowerCase();
+  if (text.includes("hello") || text.includes("hi") || text.includes("hey") || text.includes("namaste")) {
+    return "Hello! I am your CareConnect AI Assistant. How can I assist you with your health or doctor appointments today?";
+  }
+  if (specialization) {
+    return `Thank you for sharing your symptoms. Based on "${specialization}", I recommend consulting a specialist below for proper evaluation.`;
+  }
+  return "I am here to help you navigate CareConnect. You can ask about symptoms, find specialist doctors, or book appointments!";
+};
+
 router.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
-    if (!message) {
+    if (!message || !message.trim()) {
       return res.status(400).json({
         success: false,
         reply: "Please enter a message.",
@@ -59,48 +71,42 @@ router.post("/chat", async (req, res) => {
 
     let doctors = [];
     if (specialization) {
-      doctors = await Doctor.find({
-        specialization: { $regex: `^${specialization}$`, $options: "i" },
-      })
-        .select("name specialization experience fees rating")
-        .limit(5);
+      try {
+        doctors = await Doctor.find({
+          specialization: { $regex: `^${specialization}$`, $options: "i" },
+        })
+          .select("name specialization experience fees rating")
+          .limit(5);
+      } catch (err) {
+        console.warn("Error fetching doctors for AI response:", err.message);
+      }
     }
 
-    // Natural AI Prompt (No Restrictions)
+    // Natural AI Prompt
     const systemPrompt = `
-You are CareConnect AI, a friendly, intelligent, and professional assistant
-for a Doctor Booking System.
+You are CareConnect AI, a friendly, intelligent, and professional healthcare assistant for a Doctor Booking System.
 
 Guidelines:
-- Speak naturally and conversationally.
-- Help users with healthcare, appointments, and general questions.
-- Provide accurate medical information when asked.
-- Suggest doctors when relevant.
-- Do not prescribe medicines or provide diagnoses.
-- Respond in the same language as the user.
+- Speak naturally, empathetically, and conversationally.
+- Help users with healthcare advice, symptom understanding, doctor appointments, and platform navigation.
+- Provide accurate general medical advice without providing formal prescriptions or definitive diagnoses.
+- Respond in the same language as the user (e.g. English, Hindi, Hinglish).
 `;
 
-    // Call Groq API
-    const aiResponse = await axios.post(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        model: "llama-3.1-8b-instant",
-        messages: [
+    let aiReply = "";
+
+    try {
+      aiReply = await getAICompletion(
+        [
           { role: "system", content: systemPrompt },
           { role: "user", content: message },
         ],
-        temperature: 0.7,
-        max_tokens: 120,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      },
-    );
-
-    const aiReply = aiResponse.data.choices[0].message.content.trim();
+        { temperature: 0.7, max_tokens: 250 }
+      );
+    } catch (aiError) {
+      console.error("Groq AI Error (using fallback):", aiError.message);
+      aiReply = getFallbackReply(message, specialization);
+    }
 
     res.json({
       success: true,
@@ -109,10 +115,10 @@ Guidelines:
       doctors,
     });
   } catch (error) {
-    console.error("AI ERROR:", error.response?.data || error.message);
+    console.error("AI ROUTE ERROR:", error.message);
     res.status(500).json({
       success: false,
-      reply: "AI service temporarily unavailable.",
+      reply: "Hello! CareConnect AI is active. How can I help you today?",
       doctors: [],
     });
   }
