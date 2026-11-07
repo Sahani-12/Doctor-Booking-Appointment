@@ -16,7 +16,7 @@ interface Payment {
   userId: string;
   doctorId: string;
   amount: number;
-  status: "pending" | "completed" | "failed" | "refunded";
+  status: "pending" | "completed" | "success" | "failed" | "refunded" | string;
   paymentMethod: string;
   transactionId: string;
   createdAt: string;
@@ -75,8 +75,9 @@ export default function PaymentsPage() {
   });
 
   const getStatusBadgeStyle = (status: string) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "completed":
+      case "success":
         return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300";
       case "pending":
         return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300";
@@ -140,7 +141,7 @@ export default function PaymentsPage() {
               Completed
             </p>
             <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-              {payments.filter((p) => p.status === "completed").length}
+              {payments.filter((p) => p.status === "completed" || p.status === "success").length}
             </p>
           </div>
           <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
@@ -158,8 +159,8 @@ export default function PaymentsPage() {
             <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
               ₹
               {payments
-                .filter((p) => p.status === "completed")
-                .reduce((sum, p) => sum + p.amount, 0)
+                .filter((p) => p.status === "completed" || p.status === "success")
+                .reduce((sum, p) => sum + (p.amount || 0), 0)
                 .toLocaleString()}
             </p>
           </div>
@@ -244,7 +245,7 @@ export default function PaymentsPage() {
                       className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                     >
                       <td className="px-6 py-4 text-sm text-slate-900 dark:text-white font-mono">
-                        {payment.transactionId.substring(0, 12)}...
+                        {(payment.transactionId || payment._id || "").substring(0, 12)}...
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                         {payment.userName || "N/A"}
@@ -253,14 +254,13 @@ export default function PaymentsPage() {
                         {payment.doctorName || "N/A"}
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-white">
-                        ₹{payment.amount.toLocaleString()}
+                        ₹{(payment.amount || 0).toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadgeStyle(payment.status)}`}
                         >
-                          {payment.status.charAt(0).toUpperCase() +
-                            payment.status.slice(1)}
+                          {payment.status ? payment.status.charAt(0).toUpperCase() + payment.status.slice(1) : "Unknown"}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">

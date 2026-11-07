@@ -35,7 +35,7 @@ class VideoService {
         appointmentId,
         patientId,
         doctorId,
-        roomId: `local-${appointmentId}`,
+        roomId: String(appointmentId),
         roomName,
         status: "scheduled",
       });
@@ -95,7 +95,7 @@ class VideoService {
         appointmentId,
         patientId,
         doctorId,
-        roomId: `local-${appointmentId}`,
+        roomId: String(appointmentId),
         roomName,
         status: "scheduled",
       });

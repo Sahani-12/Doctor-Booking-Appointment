@@ -9,6 +9,7 @@ import {
   Loader2,
   MapPin,
   RefreshCw,
+  Video,
 } from "lucide-react";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
@@ -304,18 +305,34 @@ export default function HospitalPortal() {
                                 ", ",
                               ) || "General consultation"}
                             </p>
-                            <div className="mt-3 flex flex-wrap items-center gap-3">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                {formatDate(appointment.date)} at{" "}
-                                {appointment.slot}
-                              </span>
-                              <span
-                                className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(
-                                  appointment.status,
-                                )}`}
-                              >
-                                {appointment.status}
-                              </span>
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                              <div className="flex flex-wrap items-center gap-3">
+                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                  {formatDate(appointment.date)} at{" "}
+                                  {appointment.slot}
+                                </span>
+                                <span
+                                  className={`rounded-full px-3 py-1 text-xs font-semibold ${tone(
+                                    appointment.status,
+                                  )}`}
+                                >
+                                  {appointment.status}
+                                </span>
+                              </div>
+                              {(appointment.status === "confirmed" || appointment.status === "in-progress") && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    navigate(`/video?roomID=${appointment._id}`, {
+                                      state: { appointment },
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white transition shadow-sm cursor-pointer"
+                                >
+                                  <Video className="h-3.5 w-3.5" />
+                                  Join Video
+                                </button>
+                              )}
                             </div>
                           </div>
                         ))

@@ -19,8 +19,9 @@ class ApiService {
 
     // Add token to requests
     this.client.interceptors.request.use((config) => {
-      if (this.token) {
-        config.headers.Authorization = `Bearer ${this.token}`;
+      const activeToken = this.token || localStorage.getItem("adminToken");
+      if (activeToken) {
+        config.headers.Authorization = `Bearer ${activeToken}`;
       }
       return config;
     });
@@ -29,9 +30,12 @@ class ApiService {
     this.client.interceptors.response.use(
       (response) => response,
       (error) => {
-        if (error.response?.status === 401) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
           localStorage.removeItem("adminToken");
-          window.location.href = "/login";
+          localStorage.removeItem("admin");
+          if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+            window.location.href = "/login";
+          }
         }
         return Promise.reject(error);
       },

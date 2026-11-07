@@ -1,9 +1,14 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-// Use MongoDB Atlas connection
-const MONGODB_URI =
-  "mongodb+srv://anandsahani617_db_user:anand121@cluster0.aq1naoq.mongodb.net/careconnect?retryWrites=true&w=majority";
+// Load from environment variable (never hardcode database credentials)
+const MONGODB_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error("❌ Set MONGO_URI in .env file before running this script.");
+  process.exit(1);
+}
 
 const userSchema = new mongoose.Schema({
   fullname: String,

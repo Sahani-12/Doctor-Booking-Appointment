@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import ChatImage from "../assets/Chat.png";
-import { getAIResponse } from "../utils/aiService";
+import ChatImage from "@/assets/Chat.png";
+import { getAIResponse } from "@/utils/aiService";
 import { Send, Trash2, X } from "lucide-react";
 
 const Chat = () => {

@@ -26,9 +26,22 @@ const protect = asyncHandler(async (req, res, next) => {
 
       const account = doctor || user;
 
-      // Ensure role is set
-      if (!account.role && doctor) {
+      // Ensure role is preserved accurately
+      if (doctor) {
         account.role = "doctor";
+      } else if (user) {
+        if (user.role === "admin") {
+          account.role = "admin";
+        } else if (user.role === "doctor") {
+          account.role = "doctor";
+        } else if (user.email) {
+          const docExists = await Doctor.exists({
+            email: user.email.toLowerCase().trim(),
+          });
+          if (docExists) {
+            account.role = "doctor";
+          }
+        }
       }
 
       req.user = account;
@@ -50,4 +63,47 @@ const protect = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { protect };
+const optionalAuth = asyncHandler(async (req, res, next) => {
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const doctor = await Doctor.findById(decoded.id).select("-password");
+      const user = doctor
+        ? null
+        : await User.findById(decoded.id).select("-password");
+
+      const account = doctor || user;
+      if (account) {
+        if (doctor) {
+          account.role = "doctor";
+        } else if (user) {
+          if (user.role === "admin") {
+            account.role = "admin";
+          } else if (user.role === "doctor") {
+            account.role = "doctor";
+          } else if (user.email) {
+            const docExists = await Doctor.exists({
+              email: user.email.toLowerCase().trim(),
+            });
+            if (docExists) {
+              account.role = "doctor";
+            }
+          }
+        }
+        req.user = account;
+      }
+    } catch (error) {
+      // Ignore token verification errors for optional endpoints
+    }
+  }
+
+  next();
+});
+
+module.exports = { protect, optionalAuth };

@@ -1,3 +1,5 @@
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -20,14 +22,13 @@ const aiRoute = require("./routes/aiRoute");
 const symptomRoutes = require("./routes/symptomRoutes");
 
 const app = express();
-const path = require("path");
 
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Middleware
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cors({ origin: true, credentials: true }));
 app.use(morgan("dev"));
 // app.use("/uploads", express.static("uploads"));
@@ -55,6 +56,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/video", videoRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/hospital", hospitalRoutes);
+app.use("/api/doctor", hospitalRoutes);
 
 // Health check
 app.get("/", (req, res) => {

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
@@ -14,6 +14,18 @@ import PatientsHubPage from "./pages/PatientsHubPage";
 import CreateMedicalRecordPage from "./pages/CreateMedicalRecordPage";
 import AdmitPatientPage from "./pages/AdmitPatientPage";
 import CreateLabOrderPage from "./pages/CreateLabOrderPage";
+import DoctorBillingPage from "./pages/DoctorBillingPage";
+
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("doctorToken") ||
+    sessionStorage.getItem("token");
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+};
 
 export default function App() {
   return (
@@ -22,7 +34,13 @@ export default function App() {
         <ScrollToTop />
         <Routes>
           {/* Dashboard Layout */}
-          <Route element={<AppLayout />}>
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
             {/* 1. Overview */}
             <Route path="/home" element={<HospitalHome />} />
             <Route path="/calendar" element={<Calendar />} />
@@ -33,6 +51,7 @@ export default function App() {
 
             {/* 3. Management */}
             <Route path="/appointments" element={<AppointmentsManagement />} />
+            <Route path="/billing" element={<DoctorBillingPage />} />
             <Route path="/profile" element={<DoctorProfilePage />} />
 
             {/* 4. Hospital Operations */}

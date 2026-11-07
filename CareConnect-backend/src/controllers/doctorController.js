@@ -10,33 +10,39 @@ const getAllDoctors = asyncHandler(async (req, res) => {
     req.query.limit,
   );
 
+  const escapeRegex = (text) =>
+    String(text).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
+
   // Build filter object
   const filter = {};
 
   // Search by name, description, or specialization
   if (req.query.search) {
+    const escaped = escapeRegex(req.query.search.trim());
     filter.$or = [
-      { fullname: { $regex: req.query.search, $options: "i" } },
-      { description: { $regex: req.query.search, $options: "i" } },
-      { specialization: { $in: [new RegExp(req.query.search, "i")] } },
+      { fullname: { $regex: escaped, $options: "i" } },
+      { description: { $regex: escaped, $options: "i" } },
+      { specialization: { $in: [new RegExp(escaped, "i")] } },
     ];
   }
 
   // Filter by city
   if (req.query.city) {
-    filter.city = { $regex: req.query.city, $options: "i" };
+    filter.city = { $regex: escapeRegex(req.query.city.trim()), $options: "i" };
   }
 
   // Filter by specialization
   if (req.query.specialization) {
+    const escapedSpec = escapeRegex(req.query.specialization.trim());
     filter.specialization = {
-      $in: [new RegExp(req.query.specialization, "i")],
+      $in: [new RegExp(escapedSpec, "i")],
     };
   }
 
   // Filter by language
   if (req.query.language) {
-    filter.languagesSpoken = { $in: [new RegExp(req.query.language, "i")] };
+    const escapedLang = escapeRegex(req.query.language.trim());
+    filter.languagesSpoken = { $in: [new RegExp(escapedLang, "i")] };
   }
 
   // Filter by fee range
@@ -95,7 +101,9 @@ const getDoctorById = asyncHandler(async (req, res) => {
 // @desc Get doctor profile (authenticated doctor)
 // @route GET /api/doctors/profile
 const getDoctorProfile = asyncHandler(async (req, res) => {
-  if (req.user.role !== "doctor") {
+  const isDoctor =
+    req.user.role === "doctor" || (await Doctor.exists({ _id: req.user._id }));
+  if (!isDoctor) {
     res.status(403);
     throw new Error("This endpoint is for doctors only");
   }
@@ -103,6 +111,11 @@ const getDoctorProfile = asyncHandler(async (req, res) => {
   const doctor = await Doctor.findById(req.user._id)
     .select("-password")
     .populate("stories");
+
+  if (!doctor) {
+    res.status(404);
+    throw new Error("Doctor not found");
+  }
 
   res.json({
     success: true,
@@ -113,27 +126,39 @@ const getDoctorProfile = asyncHandler(async (req, res) => {
 // @desc Update doctor profile
 // @route PUT /api/doctors/profile
 const updateDoctorProfile = asyncHandler(async (req, res) => {
-  if (req.user.role !== "doctor") {
+  const targetDoctorId =
+    req.params.id && req.user.role === "admin" ? req.params.id : req.user._id;
+
+  const isDoctor =
+    req.user.role === "doctor" ||
+    (await Doctor.exists({ _id: targetDoctorId })) ||
+    req.user.role === "admin";
+
+  if (!isDoctor) {
     res.status(403);
     throw new Error("This endpoint is for doctors only");
   }
 
   const {
     fullname,
+    name,
     phone,
     gender,
     DOB,
     age,
     experience,
     description,
+    bio,
     specialization,
     subspecialization,
     degrees,
+    qualifications,
     certification,
     educationHistory,
     fee,
     emergencyFee,
     location,
+    hospital,
     city,
     profileImage,
     languagesSpoken,
@@ -143,7 +168,8 @@ const updateDoctorProfile = asyncHandler(async (req, res) => {
   // Build update object (only include provided fields)
   const updateData = {};
   const unsetFields = {};
-  if (fullname !== undefined) updateData.fullname = fullname;
+  const doctorName = fullname !== undefined ? fullname : name;
+  if (doctorName !== undefined) updateData.fullname = doctorName;
   if (phone !== undefined) updateData.phone = phone;
   if (gender !== undefined) updateData.gender = gender;
   if (DOB !== undefined) updateData.DOB = DOB;
@@ -155,7 +181,8 @@ const updateDoctorProfile = asyncHandler(async (req, res) => {
     }
   }
   if (experience !== undefined) updateData.experience = experience;
-  if (description !== undefined) updateData.description = description;
+  const doctorBio = description !== undefined ? description : bio;
+  if (doctorBio !== undefined) updateData.description = doctorBio;
   if (licenseNumber !== undefined) updateData.licenseNumber = licenseNumber;
   const toStringArray = (val) => {
     if (val === null || val === undefined) return [];
@@ -176,8 +203,9 @@ const updateDoctorProfile = asyncHandler(async (req, res) => {
   if (subspecialization !== undefined) {
     updateData.subspecialization = toStringArray(subspecialization);
   }
-  if (degrees !== undefined) {
-    updateData.degrees = toStringArray(degrees);
+  const degreesVal = degrees !== undefined ? degrees : qualifications;
+  if (degreesVal !== undefined) {
+    updateData.degrees = toStringArray(degreesVal);
   }
   if (certification !== undefined) {
     updateData.certification = toStringArray(certification);
@@ -185,9 +213,16 @@ const updateDoctorProfile = asyncHandler(async (req, res) => {
   if (educationHistory !== undefined) {
     updateData.educationHistory = toStringArray(educationHistory);
   }
-  if (fee !== undefined) updateData.fee = fee;
-  if (emergencyFee !== undefined) updateData.emergencyFee = emergencyFee;
-  if (location !== undefined) updateData.location = location;
+  if (fee !== undefined) {
+    if (fee === "" || fee === null) unsetFields.fee = "";
+    else updateData.fee = Number(fee);
+  }
+  if (emergencyFee !== undefined) {
+    if (emergencyFee === "" || emergencyFee === null) unsetFields.emergencyFee = "";
+    else updateData.emergencyFee = Number(emergencyFee);
+  }
+  const doctorLocation = location !== undefined ? location : hospital;
+  if (doctorLocation !== undefined) updateData.location = doctorLocation;
   if (city !== undefined) updateData.city = city;
   if (profileImage !== undefined) updateData.profileImage = profileImage;
   if (languagesSpoken !== undefined) {
@@ -202,10 +237,15 @@ const updateDoctorProfile = asyncHandler(async (req, res) => {
   }
 
   const updatedDoctor = await Doctor.findByIdAndUpdate(
-    req.user._id,
+    targetDoctorId,
     updatePayload,
     { new: true, runValidators: true },
   ).select("-password");
+
+  if (!updatedDoctor) {
+    res.status(404);
+    throw new Error("Doctor not found");
+  }
 
   res.json({
     success: true,

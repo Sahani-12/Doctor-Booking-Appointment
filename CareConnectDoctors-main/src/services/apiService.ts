@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from "axios";
+import { API_BASE } from "../constants/api";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+const API_BASE_URL = API_BASE;
 
 class DoctorApiService {
   private client: AxiosInstance;
@@ -15,13 +15,16 @@ class DoctorApiService {
       },
     });
 
-    this.token =
-      localStorage.getItem("doctorToken") || sessionStorage.getItem("token");
+    const getStoredToken = () =>
+      localStorage.getItem("doctorToken") ||
+      sessionStorage.getItem("token") ||
+      localStorage.getItem("token");
+
+    this.token = getStoredToken();
 
     // Add token to requests
     this.client.interceptors.request.use((config) => {
-      const currentToken =
-        localStorage.getItem("doctorToken") || sessionStorage.getItem("token");
+      const currentToken = getStoredToken() || this.token;
       if (currentToken) {
         config.headers.Authorization = `Bearer ${currentToken}`;
       }
@@ -33,9 +36,11 @@ class DoctorApiService {
       (response) => response,
       (error) => {
         if (error.response?.status === 401) {
+          localStorage.removeItem("token");
           localStorage.removeItem("doctorToken");
           sessionStorage.removeItem("token");
-          window.location.href = "/login";
+          sessionStorage.removeItem("user");
+          window.location.href = "/";
         }
         return Promise.reject(error);
       },
@@ -44,27 +49,30 @@ class DoctorApiService {
 
   setToken(token: string) {
     this.token = token;
+    localStorage.setItem("token", token);
     localStorage.setItem("doctorToken", token);
+    sessionStorage.setItem("token", token);
   }
 
   // Auth endpoints
   async loginDoctor(email: string, password: string) {
-    const response = await this.client.post("/auth/doctor-login", {
+    const response = await this.client.post("/auth/login", {
       email,
       password,
+      role: "doctor",
     });
     return response.data;
   }
 
   // Dashboard endpoints
   async getDoctorDashboard() {
-    const response = await this.client.get("/doctor/dashboard");
+    const response = await this.client.get("/hospital/dashboard/overview");
     return response.data;
   }
 
   // My Appointments
   async getMyAppointments(filters?: any) {
-    const response = await this.client.get("/doctor/appointments", {
+    const response = await this.client.get("/appointments/my", {
       params: filters,
     });
     return response.data;
@@ -72,21 +80,33 @@ class DoctorApiService {
 
   async getAppointmentDetails(appointmentId: string) {
     const response = await this.client.get(
-      `/doctor/appointments/${appointmentId}`,
+      `/appointments/${appointmentId}`,
     );
     return response.data;
   }
 
   // My Patients
   async getMyPatients(filters?: any) {
-    const response = await this.client.get("/doctor/patients", {
+    const response = await this.client.get("/hospital/patients", {
       params: filters,
     });
     return response.data;
   }
 
+  // All Hospital Patients (for issuing bills, lab orders, admissions)
+  async getHospitalPatientsForBilling(search?: string) {
+    const response = await this.client.get("/hospital/patients", {
+      params: {
+        scope: "all",
+        limit: 200,
+        search: search || undefined,
+      },
+    });
+    return response.data;
+  }
+
   async getPatientDetails(patientId: string) {
-    const response = await this.client.get(`/doctor/patients/${patientId}`);
+    const response = await this.client.get(`/hospital/patients/${patientId}/summary`);
     return response.data;
   }
 
@@ -102,14 +122,14 @@ class DoctorApiService {
     treatmentPlan?: string;
   }) {
     const response = await this.client.post(
-      "/doctor/medical-records",
+      "/hospital/medical-records",
       recordData,
     );
     return response.data;
   }
 
   async getMedicalRecords(filters?: any) {
-    const response = await this.client.get("/doctor/medical-records", {
+    const response = await this.client.get("/hospital/medical-records", {
       params: filters,
     });
     return response.data;
@@ -117,7 +137,7 @@ class DoctorApiService {
 
   async updateMedicalRecord(recordId: string, recordData: any) {
     const response = await this.client.put(
-      `/doctor/medical-records/${recordId}`,
+      `/hospital/medical-records/${recordId}`,
       recordData,
     );
     return response.data;
@@ -130,12 +150,12 @@ class DoctorApiService {
     clinicalNotes?: string;
     urgency?: "normal" | "urgent";
   }) {
-    const response = await this.client.post("/doctor/lab-orders", orderData);
+    const response = await this.client.post("/hospital/lab-orders", orderData);
     return response.data;
   }
 
   async getLabOrders(filters?: any) {
-    const response = await this.client.get("/doctor/lab-orders", {
+    const response = await this.client.get("/hospital/lab-orders", {
       params: filters,
     });
     return response.data;
@@ -143,7 +163,7 @@ class DoctorApiService {
 
   async updateLabOrder(orderId: string, orderData: any) {
     const response = await this.client.put(
-      `/doctor/lab-orders/${orderId}`,
+      `/hospital/lab-orders/${orderId}`,
       orderData,
     );
     return response.data;
@@ -160,14 +180,14 @@ class DoctorApiService {
     estimatedDuration?: number;
   }) {
     const response = await this.client.post(
-      "/doctor/admissions",
+      "/hospital/admissions",
       admissionData,
     );
     return response.data;
   }
 
   async getAdmissions(filters?: any) {
-    const response = await this.client.get("/doctor/admissions", {
+    const response = await this.client.get("/hospital/admissions", {
       params: filters,
     });
     return response.data;
@@ -175,7 +195,7 @@ class DoctorApiService {
 
   async updateAdmission(admissionId: string, admissionData: any) {
     const response = await this.client.put(
-      `/doctor/admissions/${admissionId}`,
+      `/hospital/admissions/${admissionId}`,
       admissionData,
     );
     return response.data;
@@ -183,8 +203,8 @@ class DoctorApiService {
 
   async dischargePatient(admissionId: string, dischargeSummary: string) {
     const response = await this.client.put(
-      `/doctor/admissions/${admissionId}/discharge`,
-      { dischargeSummary },
+      `/hospital/admissions/${admissionId}`,
+      { status: "discharged", dischargeSummary },
     );
     return response.data;
   }
@@ -203,14 +223,19 @@ class DoctorApiService {
     notes?: string;
   }) {
     const response = await this.client.post(
-      "/doctor/prescriptions",
-      prescriptionData,
+      "/hospital/medical-records",
+      {
+        patientId: prescriptionData.patientId,
+        diagnosis: "Prescription",
+        medications: prescriptionData.medications,
+        notes: prescriptionData.notes,
+      },
     );
     return response.data;
   }
 
   async getPrescriptions(filters?: any) {
-    const response = await this.client.get("/doctor/prescriptions", {
+    const response = await this.client.get("/hospital/medical-records", {
       params: filters,
     });
     return response.data;
@@ -218,24 +243,24 @@ class DoctorApiService {
 
   // Profile
   async getDoctorProfile() {
-    const response = await this.client.get("/doctor/profile");
+    const response = await this.client.get("/doctors/profile");
     return response.data;
   }
 
   async updateDoctorProfile(profileData: any) {
-    const response = await this.client.put("/doctor/profile", profileData);
+    const response = await this.client.put("/doctors/profile", profileData);
     return response.data;
   }
 
   // Availability & Schedule
   async getAvailableSlots() {
-    const response = await this.client.get("/doctor/available-slots");
+    const response = await this.client.get("/doctors/available-slots");
     return response.data;
   }
 
   async setAvailability(availabilityData: any) {
     const response = await this.client.post(
-      "/doctor/availability",
+      "/doctors/availability",
       availabilityData,
     );
     return response.data;
@@ -265,7 +290,45 @@ class DoctorApiService {
 
   // Statistics
   async getDoctorStats() {
-    const response = await this.client.get("/doctor/stats");
+    const response = await this.client.get("/appointments/stats");
+    return response.data;
+  }
+
+  // Billing & Invoices
+  async getBills(filters?: any) {
+    const response = await this.client.get("/hospital/bills", {
+      params: filters,
+    });
+    return response.data;
+  }
+
+  async createBill(billData: {
+    patientId: string;
+    lineItems: Array<{
+      description: string;
+      category?: string;
+      quantity: number;
+      unitPrice: number;
+      amount: number;
+    }>;
+    taxAmount?: number;
+    discountAmount?: number;
+    paidAmount?: number;
+    paymentMethod?: string;
+    status?: string;
+    notes?: string;
+    dueDate?: string;
+    appointmentId?: string;
+  }) {
+    const response = await this.client.post("/hospital/bills", billData);
+    return response.data;
+  }
+
+  async updateBill(billId: string, updateData: any) {
+    const response = await this.client.put(
+      `/hospital/bills/${billId}`,
+      updateData,
+    );
     return response.data;
   }
 }

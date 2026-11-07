@@ -22,8 +22,8 @@ export default function QrCodeGenerator() {
     const now = new Date();
     const dateTimeString = now.toLocaleString();
 
-    // ✅ IMPORTANT: localhost replace karo
-    const qrText = `${window.location.origin}/#/User-page/${userId}`;
+    // Standard SPA route without hash
+    const qrText = `${window.location.origin}/User-page/${userId}`;
 
     setQrList([
       {

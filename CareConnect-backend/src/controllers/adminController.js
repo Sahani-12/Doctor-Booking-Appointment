@@ -344,7 +344,7 @@ const getDashboard = asyncHandler(async (req, res) => {
 
   const revenueData = await Transaction.aggregate([
     {
-      $match: { status: "completed" },
+      $match: { status: { $in: ["success", "completed"] } },
     },
     {
       $group: {
@@ -386,7 +386,7 @@ const getDashboard = asyncHandler(async (req, res) => {
 const getPayments = asyncHandler(async (req, res) => {
   const { page, limit, skip } = calculatePagination(
     req.query.page,
-    req.query.limit,
+    req.query.limit || 100,
   );
 
   const filter = {};
@@ -394,13 +394,50 @@ const getPayments = asyncHandler(async (req, res) => {
     filter.status = req.query.status;
   }
 
+  // Ensure any existing paid bills without transactions are recorded
+  try {
+    const paidBillsWithoutTx = await Bill.find({
+      $or: [{ status: "paid" }, { paidAmount: { $gt: 0 } }],
+    }).limit(50);
+
+    for (const b of paidBillsWithoutTx) {
+      const exists = await Transaction.exists({ billId: b._id });
+      if (!exists) {
+        await Transaction.create({
+          billId: b._id,
+          appointmentId: b.appointment || undefined,
+          userId: b.patient,
+          doctorId: b.doctor || undefined,
+          amount: Number(b.paidAmount || b.totalAmount || 0),
+          currency: "INR",
+          paymentMethod: b.paymentMethod || "demo",
+          gateway: "demo",
+          status: "success",
+          paymentType: "bill",
+          description: `Hospital Bill #${b.billNumber} Payment`,
+          createdAt: b.paidAt || b.updatedAt || b.createdAt,
+        });
+      }
+    }
+  } catch (syncErr) {
+    console.error("Auto-sync paid bills to transactions warning:", syncErr);
+  }
+
   const total = await Transaction.countDocuments(filter);
   const totalPages = Math.ceil(total / limit);
 
   const payments = await Transaction.find(filter)
-    .populate("appointment", "patient doctor")
+    .populate("userId", "fullname email")
+    .populate("doctorId", "fullname email specialization")
     .populate({
-      path: "appointment",
+      path: "appointmentId",
+      populate: [
+        { path: "patient", select: "fullname email" },
+        { path: "doctor", select: "fullname email" },
+      ],
+    })
+    .populate({
+      path: "billId",
       populate: [
         { path: "patient", select: "fullname email" },
         { path: "doctor", select: "fullname email" },
@@ -410,10 +447,35 @@ const getPayments = asyncHandler(async (req, res) => {
     .limit(limit)
     .sort({ createdAt: -1 });
 
+  const formattedPayments = payments.map((tx) => {
+    const obj = tx.toObject ? tx.toObject() : tx;
+    return {
+      ...obj,
+      transactionId:
+        obj.stripePaymentIntentId ||
+        obj.razorpayPaymentId ||
+        (obj.billId?.billNumber ? `${obj.billId.billNumber}-TX` : "") ||
+        obj._id?.toString() ||
+        "",
+      userName:
+        obj.userId?.fullname ||
+        obj.appointmentId?.patient?.fullname ||
+        obj.billId?.patient?.fullname ||
+        "Patient",
+      doctorName:
+        obj.doctorId?.fullname ||
+        obj.appointmentId?.doctor?.fullname ||
+        obj.billId?.doctor?.fullname ||
+        (obj.paymentType === "bill" || obj.billId ? "Hospital Billing" : "Doctor"),
+      appointment: obj.appointmentId,
+      bill: obj.billId,
+    };
+  });
+
   res.json({
     success: true,
     pagination: { page, limit, total, totalPages },
-    data: payments,
+    data: formattedPayments,
   });
 });
 

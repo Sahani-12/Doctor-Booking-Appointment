@@ -247,7 +247,8 @@ const getAvailableSlots = asyncHandler(async (req, res) => {
       return { startTime: slot, status: "available" };
     }
     // Check if it's the current user's appointment
-    const isMine = req.user._id.toString() === booking.patient.toString();
+    const currentUserId = req.user?._id ? req.user._id.toString() : null;
+    const isMine = currentUserId && booking.patient ? currentUserId === booking.patient.toString() : false;
     return {
       startTime: slot,
       status: isMine ? "mine" : "booked",

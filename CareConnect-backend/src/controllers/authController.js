@@ -113,11 +113,13 @@ const registerDoctor = asyncHandler(async (req, res) => {
     message: "Doctor registered successfully",
     data: {
       user: {
+        _id: doctor._id,
         id: doctor._id,
         fullname: doctor.fullname,
         email: doctor.email,
         role: doctor.role,
         city: doctor.city,
+        profileImage: doctor.profileImage || "",
       },
       token: generateToken(doctor._id),
     },
@@ -185,6 +187,7 @@ const registerUser = asyncHandler(async (req, res) => {
     message: "User registered successfully",
     data: {
       user: {
+        _id: user._id,
         id: user._id,
         fullname: user.fullname,
         email: user.email,
@@ -209,9 +212,15 @@ const login = asyncHandler(async (req, res) => {
     throw new Error("Email and password are required");
   }
 
-  // Check in both collections
-  const doctor = await Doctor.findOne({ email });
-  const user = !doctor ? await User.findOne({ email }) : null;
+  const cleanEmail = email.trim();
+  const emailRegex = new RegExp(
+    `^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+    "i",
+  );
+
+  // Check in both collections (case-insensitive)
+  const doctor = await Doctor.findOne({ email: emailRegex });
+  const user = !doctor ? await User.findOne({ email: emailRegex }) : null;
   const account = doctor || user;
 
   if (!account) {
@@ -226,17 +235,21 @@ const login = asyncHandler(async (req, res) => {
     throw new Error("Invalid credentials");
   }
 
+  const role = doctor ? "doctor" : account.role || "user";
+
   res.json({
     success: true,
     message: "Login successful",
     data: {
       user: {
+        _id: account._id,
         id: account._id,
         fullname: account.fullname,
         email: account.email,
-        role: account.role,
+        role: role,
         city: account.city,
         specialization: account.specialization,
+        profileImage: account.profileImage || "",
       },
       token: generateToken(account._id),
     },
@@ -254,32 +267,66 @@ const adminLogin = asyncHandler(async (req, res) => {
     throw new Error("Email and password are required");
   }
 
-  // Find user with admin role
-  const admin = await User.findOne({ email, role: "admin" });
+  const cleanEmail = email.trim();
+  const emailRegex = new RegExp(
+    `^${cleanEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+    "i",
+  );
 
-  if (!admin) {
+  // Find user with admin role (case-insensitive)
+  let account = await User.findOne({ email: emailRegex, role: "admin" });
+  let isDoctor = false;
+
+  // If not found as explicit admin user, check if a registered doctor or staff is logging in
+  if (!account) {
+    const doctorAccount = await Doctor.findOne({ email: emailRegex });
+    if (doctorAccount) {
+      account = doctorAccount;
+      isDoctor = true;
+    } else {
+      // Fallback check: check if any User has admin role by case-insensitive email
+      const generalUser = await User.findOne({ email: emailRegex });
+      if (generalUser && generalUser.role === "admin") {
+        account = generalUser;
+      }
+    }
+  }
+
+  if (!account) {
     res.status(401);
     throw new Error("Invalid credentials");
   }
 
   // Compare passwords
-  const isMatch = await bcrypt.compare(password, admin.password);
+  const isMatch = await bcrypt.compare(password, account.password);
   if (!isMatch) {
     res.status(401);
     throw new Error("Invalid credentials");
   }
+
+  const role = isDoctor ? "doctor" : account.role || "admin";
 
   res.json({
     success: true,
     message: "Admin login successful",
     data: {
       admin: {
-        id: admin._id,
-        name: admin.fullname,
-        email: admin.email,
-        role: admin.role,
+        _id: account._id,
+        id: account._id,
+        name: account.fullname,
+        fullname: account.fullname,
+        email: account.email,
+        role: role,
       },
-      token: generateToken(admin._id),
+      user: {
+        _id: account._id,
+        id: account._id,
+        name: account.fullname,
+        fullname: account.fullname,
+        email: account.email,
+        role: role,
+      },
+      token: generateToken(account._id),
     },
   });
 });
@@ -306,19 +353,30 @@ const logout = asyncHandler(async (req, res) => {
 // @desc Setup admin user (for initial setup only)
 // @route POST /api/auth/setup-admin
 const setupAdmin = asyncHandler(async (req, res) => {
-  const { email, password, fullname } = req.body;
+  const { email, password, fullname, setupKey } = req.body;
 
   if (!email || !password) {
     res.status(400);
     throw new Error("Email and password are required");
   }
 
-  // Check if admin already exists
+  // Security check: Only allow if no admin exists yet OR if valid setupKey matches environment secret
+  const existingAnyAdmin = await User.findOne({ role: "admin" });
+  const configuredKey = process.env.ADMIN_SETUP_SECRET;
+
+  if (existingAnyAdmin) {
+    if (!configuredKey || setupKey !== configuredKey) {
+      res.status(403);
+      throw new Error("Admin user already initialized. Setup endpoint is locked.");
+    }
+  }
+
+  // Check if this specific email is already registered
   const existing = await User.findOne({ email });
   if (existing) {
-    return res.json({
-      success: true,
-      message: "User already exists",
+    return res.status(400).json({
+      success: false,
+      message: "An account with this email already exists",
       data: { email, role: existing.role },
     });
   }
@@ -338,7 +396,7 @@ const setupAdmin = asyncHandler(async (req, res) => {
 
   const token = generateToken(admin._id);
 
-  res.json({
+  res.status(201).json({
     success: true,
     message: "Admin setup successful",
     data: {

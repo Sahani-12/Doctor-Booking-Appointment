@@ -5,7 +5,9 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const MONGODB_URI =
-  process.env.MONGODB_URI || "mongodb://localhost:27017/careconnect";
+  process.env.MONGO_URI ||
+  process.env.MONGODB_URI ||
+  "mongodb://localhost:27017/careconnect";
 
 const userSchema = new mongoose.Schema({
   fullname: String,

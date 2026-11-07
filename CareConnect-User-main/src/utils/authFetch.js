@@ -1,26 +1,34 @@
 import BASE_URL from "@/constants/api";
 
 export const authFetch = async (url, options = {}) => {
-  const token = sessionStorage.getItem("token");
+  const token =
+    sessionStorage.getItem("token") || localStorage.getItem("token");
 
   const config = {
     ...options,
     headers: {
       ...(options.headers || {}),
-      Authorization: `Bearer ${token}`,
+      Authorization: token ? `Bearer ${token}` : "",
       "Content-Type": "application/json",
     },
     credentials: "include",
   };
 
-  const response = await fetch(BASE_URL + url, config);
+  const cleanUrl = url.startsWith("/api") ? url.replace(/^\/api/, "") : url;
+  const targetUrl = cleanUrl.startsWith("/") ? cleanUrl : `/${cleanUrl}`;
+
+  const response = await fetch(BASE_URL + targetUrl, config);
 
   if (response.status !== 401) return response;
 
-  // Backend in this project issues a JWT access token only.
-  // If it expires (401), send user back to login.
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("user");
-  window.location.href = "/login";
-  throw new Error("Unauthorized");
+  // Only redirect if an existing token was invalid/expired, without hard crashing unauthenticated browsing
+  if (token && !options.skipAuthRedirect) {
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("userProfile");
+    window.location.href = "/login";
+  }
+
+  return response;
 };

@@ -53,7 +53,7 @@ const AppointmentTable = () => {
   const handleJoinCall = (appointment) => {
     // Grab the ID whether backend sends _id, id, or appointmentId
     const roomId = appointment._id || appointment.id || appointment.appointmentId;
-    navigate(`/video?roomID=${roomId}`);
+    navigate(`/video?roomID=${roomId}`, { state: { appointment } });
   };
 
   const formatPrescription = (value) => {

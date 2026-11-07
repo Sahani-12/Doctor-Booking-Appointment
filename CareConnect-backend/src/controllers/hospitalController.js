@@ -7,6 +7,7 @@ const Bill = require("../models/Bill");
 const User = require("../models/User");
 const Doctor = require("../models/Doctor");
 const Appointment = require("../models/Appointment");
+const Transaction = require("../models/Transaction");
 const { calculatePagination } = require("../utils/response");
 
 const DEFAULT_DEPARTMENTS = [
@@ -94,15 +95,19 @@ const generateRef = (prefix) => {
 };
 
 const getAuthDoctorId = async (user) => {
-  if (!user || user.role !== "doctor") return null;
+  if (!user) return null;
 
   const byId = await Doctor.findById(user._id).select("_id");
   if (byId) return byId._id;
 
-  if (!user.email) return null;
+  if (user.email) {
+    const byEmail = await Doctor.findOne({
+      email: user.email.toLowerCase().trim(),
+    }).select("_id");
+    if (byEmail) return byEmail._id;
+  }
 
-  const byEmail = await Doctor.findOne({ email: user.email }).select("_id");
-  return byEmail?._id || null;
+  return null;
 };
 
 const ensureDefaultDepartments = async () => {
@@ -178,6 +183,7 @@ const canAccessPatient = async (reqUser, patientId) => {
     MedicalRecord.exists({ doctor: doctorId, patient: patientId }),
     Admission.exists({ doctor: doctorId, patient: patientId }),
     LabOrder.exists({ doctor: doctorId, patient: patientId }),
+    Bill.exists({ doctor: doctorId, patient: patientId }),
   ]);
 
   return related.some(Boolean);
@@ -188,11 +194,14 @@ const buildRoleFilter = async (
   patientField = "patient",
   doctorField = "doctor",
 ) => {
+  if (!reqUser) return { [doctorField]: new mongoose.Types.ObjectId() };
   if (reqUser.role === "admin") return {};
   if (reqUser.role === "user") return { [patientField]: reqUser._id };
 
   const doctorId = await getAuthDoctorId(reqUser);
-  return doctorId ? { [doctorField]: doctorId } : { [doctorField]: null };
+  return doctorId
+    ? { [doctorField]: doctorId }
+    : { [doctorField]: new mongoose.Types.ObjectId() };
 };
 
 const getOccupancyByDepartment = async () => {
@@ -324,21 +333,52 @@ const getPatients = asyncHandler(async (req, res) => {
   );
   const search = req.query.search ? String(req.query.search).trim() : "";
 
+  const isDoctor =
+    req.user.role === "doctor" || (await Doctor.exists({ _id: req.user._id }));
+
+  // Doctors must strictly ONLY see patients who have booked appointments with them!
+  // Only an explicit admin viewing the global admin console can view all hospital patients.
+  const allowAllHospitalPatients =
+    req.user.role === "admin" &&
+    !isDoctor &&
+    (req.query.all === "true" || req.query.scope === "all");
+
   let patientIds = null;
-  if (req.user.role === "doctor") {
+  if (isDoctor || !allowAllHospitalPatients) {
     const doctorId = await getAuthDoctorId(req.user);
-    const [appointments, records, admissions, labs] = await Promise.all([
+    if (!doctorId) {
+      return res.json({
+        success: true,
+        pagination: { page, limit, total: 0, totalPages: 0 },
+        data: [],
+      });
+    }
+
+    const [appointments, records, admissions, labs, bills] = await Promise.all([
       Appointment.distinct("patient", { doctor: doctorId }),
       MedicalRecord.distinct("patient", { doctor: doctorId }),
       Admission.distinct("patient", { doctor: doctorId }),
       LabOrder.distinct("patient", { doctor: doctorId }),
+      Bill.distinct("patient", { doctor: doctorId }),
     ]);
 
-    patientIds = [
-      ...new Set(
-        [...appointments, ...records, ...admissions, ...labs].map(String),
-      ),
-    ];
+    const validIds = [
+      ...appointments,
+      ...records,
+      ...admissions,
+      ...labs,
+      ...bills,
+    ]
+      .filter(
+        (id) =>
+          id != null &&
+          String(id).trim() !== "" &&
+          String(id) !== "null" &&
+          String(id) !== "undefined",
+      )
+      .map(String);
+
+    patientIds = [...new Set(validIds)];
 
     if (patientIds.length === 0) {
       return res.json({
@@ -371,10 +411,16 @@ const getPatients = asyncHandler(async (req, res) => {
     .limit(limit);
 
   const patientIdsForStats = patients.map((patient) => patient._id);
+  const doctorId = isDoctor ? await getAuthDoctorId(req.user) : null;
+  const doctorMatch =
+    isDoctor && doctorId && req.user.role !== "admin"
+      ? { doctor: doctorId }
+      : {};
+
   const [appointmentStats, activeAdmissions, outstandingBills] =
     await Promise.all([
       Appointment.aggregate([
-        { $match: { patient: { $in: patientIdsForStats } } },
+        { $match: { patient: { $in: patientIdsForStats }, ...doctorMatch } },
         { $group: { _id: "$patient", appointments: { $sum: 1 } } },
       ]),
       Admission.aggregate([
@@ -382,6 +428,7 @@ const getPatients = asyncHandler(async (req, res) => {
           $match: {
             patient: { $in: patientIdsForStats },
             status: { $in: OPEN_ADMISSION_STATUSES },
+            ...doctorMatch,
           },
         },
         { $group: { _id: "$patient", activeAdmissions: { $sum: 1 } } },
@@ -391,6 +438,7 @@ const getPatients = asyncHandler(async (req, res) => {
           $match: {
             patient: { $in: patientIdsForStats },
             balanceDue: { $gt: 0 },
+            ...doctorMatch,
           },
         },
         {
@@ -426,8 +474,11 @@ const getPatients = asyncHandler(async (req, res) => {
 
 const getPatientSummary = asyncHandler(async (req, res) => {
   const { patientId } = req.params;
+  const isDoctor =
+    req.user.role === "doctor" || (await Doctor.exists({ _id: req.user._id }));
+
   const hasAccess = await canAccessPatient(req.user, patientId);
-  if (!hasAccess) {
+  if (!hasAccess && req.user.role !== "admin") {
     res.status(403);
     throw new Error("Not authorized to view this patient");
   }
@@ -437,6 +488,14 @@ const getPatientSummary = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Patient not found");
   }
+
+  // If a doctor is viewing the summary, ONLY show appointments, records, admissions, labs, and bills belonging to THIS doctor!
+  // If admin, show hospital-wide records.
+  const doctorId = isDoctor ? await getAuthDoctorId(req.user) : null;
+  const doctorFilter =
+    isDoctor && doctorId && req.user.role !== "admin"
+      ? { doctor: doctorId }
+      : {};
 
   const [
     appointmentsCount,
@@ -450,15 +509,18 @@ const getPatientSummary = asyncHandler(async (req, res) => {
     labOrders,
     bills,
   ] = await Promise.all([
-    Appointment.countDocuments({ patient: patientId }),
-    MedicalRecord.countDocuments({ patient: patientId }),
-    Admission.countDocuments({ patient: patientId }),
-    LabOrder.countDocuments({ patient: patientId }),
+    Appointment.countDocuments({ patient: patientId, ...doctorFilter }),
+    MedicalRecord.countDocuments({ patient: patientId, ...doctorFilter }),
+    Admission.countDocuments({ patient: patientId, ...doctorFilter }),
+    LabOrder.countDocuments({ patient: patientId, ...doctorFilter }),
     Bill.aggregate([
       {
         $match: {
           patient: patient._id,
           balanceDue: { $gt: 0 },
+          ...(isDoctor && doctorId && req.user.role !== "admin"
+            ? { doctor: doctorId }
+            : {}),
         },
       },
       {
@@ -468,30 +530,30 @@ const getPatientSummary = asyncHandler(async (req, res) => {
         },
       },
     ]),
-    Appointment.find({ patient: patientId })
+    Appointment.find({ patient: patientId, ...doctorFilter })
       .populate("doctor", "fullname specialization city")
       .sort({ date: -1 })
-      .limit(6),
-    MedicalRecord.find({ patient: patientId })
+      .limit(10),
+    MedicalRecord.find({ patient: patientId, ...doctorFilter })
       .populate("doctor", "fullname specialization")
       .populate("department", "name code color")
       .sort({ createdAt: -1 })
-      .limit(6),
-    Admission.find({ patient: patientId })
+      .limit(10),
+    Admission.find({ patient: patientId, ...doctorFilter })
       .populate("doctor", "fullname specialization")
       .populate("department", "name code color")
       .sort({ admissionDate: -1 })
-      .limit(6),
-    LabOrder.find({ patient: patientId })
+      .limit(10),
+    LabOrder.find({ patient: patientId, ...doctorFilter })
       .populate("doctor", "fullname specialization")
       .populate("department", "name code color")
       .sort({ orderedAt: -1 })
-      .limit(6),
-    Bill.find({ patient: patientId })
+      .limit(10),
+    Bill.find({ patient: patientId, ...doctorFilter })
       .populate("doctor", "fullname specialization")
       .populate("department", "name code color")
       .sort({ issuedAt: -1 })
-      .limit(6),
+      .limit(10),
   ]);
 
   res.json({
@@ -1046,6 +1108,14 @@ const createBill = asyncHandler(async (req, res) => {
     throw new Error("Patient not found");
   }
 
+  let doctorId = req.body.doctorId || undefined;
+  const authDoctorId = await getAuthDoctorId(req.user);
+  if (authDoctorId) {
+    doctorId = authDoctorId;
+  } else if (req.user) {
+    doctorId = req.user._id;
+  }
+
   const totals = computeBillTotals(
     Array.isArray(req.body.lineItems) ? req.body.lineItems : [],
     req.body.taxAmount,
@@ -1056,7 +1126,7 @@ const createBill = asyncHandler(async (req, res) => {
   const bill = await Bill.create({
     billNumber: generateRef("BILL"),
     patient: req.body.patientId,
-    doctor: req.body.doctorId || undefined,
+    doctor: doctorId,
     department: req.body.departmentId || undefined,
     appointment: req.body.appointmentId || undefined,
     admission: req.body.admissionId || undefined,
@@ -1072,6 +1142,27 @@ const createBill = asyncHandler(async (req, res) => {
     paymentMethod: req.body.paymentMethod || "",
     notes: req.body.notes || "",
   });
+
+  // If initial payment was recorded at bill creation, record a Transaction
+  if (bill.paidAmount > 0 || bill.status === "paid") {
+    try {
+      await Transaction.create({
+        billId: bill._id,
+        appointmentId: bill.appointment || undefined,
+        userId: bill.patient,
+        doctorId: bill.doctor || undefined,
+        amount: Number(bill.paidAmount || bill.totalAmount),
+        currency: "INR",
+        paymentMethod: bill.paymentMethod || "cash",
+        gateway: "demo",
+        status: "success",
+        paymentType: "bill",
+        description: `Hospital Bill #${bill.billNumber} Payment`,
+      });
+    } catch (txErr) {
+      console.error("Failed to record bill transaction on create:", txErr);
+    }
+  }
 
   const populated = await Bill.findById(bill._id)
     .populate("patient", "fullname email phone city")
@@ -1091,6 +1182,8 @@ const updateBill = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Bill not found");
   }
+
+  const oldPaidAmount = bill.paidAmount || 0;
 
   if (req.body.doctorId !== undefined) {
     bill.doctor = req.body.doctorId || undefined;
@@ -1144,6 +1237,29 @@ const updateBill = asyncHandler(async (req, res) => {
   }
 
   await bill.save();
+
+  // If bill received payment or was marked as paid, record Transaction
+  const newPaidAmount = bill.paidAmount || 0;
+  const paymentDiff = newPaidAmount - oldPaidAmount;
+  if (paymentDiff > 0 || (bill.status === "paid" && oldPaidAmount === 0)) {
+    try {
+      await Transaction.create({
+        billId: bill._id,
+        appointmentId: bill.appointment || undefined,
+        userId: bill.patient,
+        doctorId: bill.doctor || undefined,
+        amount: paymentDiff > 0 ? paymentDiff : Number(bill.totalAmount),
+        currency: "INR",
+        paymentMethod: bill.paymentMethod || "card",
+        gateway: "demo",
+        status: "success",
+        paymentType: "bill",
+        description: `Payment recorded for Hospital Bill #${bill.billNumber}`,
+      });
+    } catch (txErr) {
+      console.error("Failed to record bill transaction on update:", txErr);
+    }
+  }
 
   const populated = await Bill.findById(bill._id)
     .populate("patient", "fullname email phone city")
@@ -1447,10 +1563,29 @@ const payBillDemo = asyncHandler(async (req, res) => {
   bill.paidAmount = newPaidAmount;
   bill.balanceDue = totals.balanceDue;
   bill.status = totals.status;
-  bill.paymentMethod = "demo";
+  bill.paymentMethod = req.body.paymentMethod || "demo";
   bill.paidAt = bill.paidAt || new Date();
 
   await bill.save();
+
+  // Unified Transaction record so Admin Payments fetches this immediately
+  try {
+    await Transaction.create({
+      billId: bill._id,
+      appointmentId: bill.appointment || undefined,
+      userId: bill.patient,
+      doctorId: bill.doctor || undefined,
+      amount: Number(amount),
+      currency: "INR",
+      paymentMethod: req.body.paymentMethod || "demo",
+      gateway: "demo",
+      status: "success",
+      paymentType: "bill",
+      description: `Payment for Hospital Bill #${bill.billNumber}`,
+    });
+  } catch (txErr) {
+    console.error("Failed to record bill demo transaction:", txErr);
+  }
 
   const populated = await Bill.findById(bill._id)
     .populate("patient", "fullname email phone city")
@@ -1558,6 +1693,27 @@ const verifyRazorpayBillPayment = asyncHandler(async (req, res) => {
   bill.paidAt = bill.paidAt || new Date();
 
   await bill.save();
+
+  // Unified Transaction record so Admin Payments fetches this immediately
+  try {
+    await Transaction.create({
+      billId: bill._id,
+      appointmentId: bill.appointment || undefined,
+      userId: bill.patient,
+      doctorId: bill.doctor || undefined,
+      amount: Number(paymentAmount),
+      currency: "INR",
+      paymentMethod: "razorpay",
+      gateway: "razorpay",
+      razorpayPaymentId,
+      razorpayOrderId,
+      status: "success",
+      paymentType: "bill",
+      description: `Razorpay payment for Hospital Bill #${bill.billNumber}`,
+    });
+  } catch (txErr) {
+    console.error("Failed to record bill razorpay transaction:", txErr);
+  }
 
   const populated = await Bill.findById(bill._id)
     .populate("patient", "fullname email phone city")

@@ -1,5 +1,5 @@
 const express = require("express");
-const { protect } = require("../middleware/auth");
+const { protect, optionalAuth } = require("../middleware/auth");
 const { authorize } = require("../middleware/authorize");
 const {
   createAppointment,
@@ -16,14 +16,9 @@ const router = express.Router();
 router.post("/", protect, createAppointment);
 router.post("/request", protect, createAppointment); // Alias for compatibility
 router.get("/my", protect, getMyAppointments);
-router.get("/slots/:doctorId/:date", protect, getAvailableSlots);
+router.get("/slots/:doctorId/:date", optionalAuth, getAvailableSlots);
 router.put("/:id/status", protect, updateAppointmentStatus);
 router.post("/:id/cancel", protect, cancelAppointment);
-router.get(
-  "/stats",
-  protect,
-  authorize("doctor", "admin"),
-  getAppointmentStats,
-);
+router.get("/stats", protect, getAppointmentStats);
 
 module.exports = router;

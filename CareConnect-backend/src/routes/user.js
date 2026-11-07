@@ -1,5 +1,5 @@
 const express = require("express");
-const multer = require("multer");
+const upload = require("../middleware/upload");
 const { protect } = require("../middleware/auth");
 const {
   getUserProfile,
@@ -17,17 +17,6 @@ const {
 } = require("../controllers/userController");
 
 const router = express.Router();
-
-// Multer configuration
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-const upload = multer({ storage });
 
 // User profile routes
 router.get("/profile", protect, getUserProfile);
@@ -47,6 +36,12 @@ router.get("/bills", protect, getUserBills);
 // Document routes
 router.get("/documents", protect, getUserDocuments);
 router.post(
+  "/documents",
+  protect,
+  upload.single("file"),
+  uploadDocument,
+);
+router.post(
   "/documents/upload",
   protect,
   upload.single("file"),
@@ -59,12 +54,6 @@ router.get("/dashboard/profile", protect, getUserProfile);
 router.get("/dashboard/appointments", protect, getUserAppointments);
 router.get("/dashboard/documents", protect, getUserDocuments);
 router.get("/dashboard/documents/:userId", protect, getDocumentsByUserId);
-router.post(
-  "/documents/upload",
-  protect,
-  upload.single("file"),
-  uploadDocument,
-);
 router.get("/:id", getUserById);
 router.get("/users/:id", getUserById);
 

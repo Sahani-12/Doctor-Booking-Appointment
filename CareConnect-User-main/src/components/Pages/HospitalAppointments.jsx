@@ -40,14 +40,14 @@ const AppointmentCard = ({ appointment, onJoinVideo }) => {
   const [isJoining, setIsJoining] = useState(false);
 
   const canJoinVideo =
-    appointment.status === "confirmed" &&
-    new Date(appointment.date) >= new Date();
+    appointment.status === "confirmed" ||
+    appointment.status === "in-progress";
 
   const handleJoinVideo = () => {
     setIsJoining(true);
     // Grab the ID whether backend sends _id, id, or appointmentId
     const roomId = appointment._id || appointment.id || appointment.appointmentId;
-    navigate(`/video?roomID=${roomId}`);
+    navigate(`/video?roomID=${roomId}`, { state: { appointment } });
   };
 
   return (

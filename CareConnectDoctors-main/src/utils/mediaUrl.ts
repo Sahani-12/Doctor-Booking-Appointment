@@ -8,7 +8,7 @@ export function resolveMediaUrl(url?: string | null): string {
   if (url == null || typeof url !== "string") return "";
   const u = url.trim();
   if (!u) return "";
-  if (/^https?:\/\//i.test(u)) return u;
+  if (/^(?:https?:|data:|blob:)/i.test(u)) return u;
   const origin = getApiOrigin();
   return u.startsWith("/") ? `${origin}${u}` : `${origin}/${u}`;
 }

@@ -40,12 +40,23 @@ export default function SignInForm() {
       if (response.ok && data.success) {
         const payload = data.data || data;
         const user = payload.user || payload;
+
+        if (user.role && user.role !== "doctor") {
+          setError("Access restricted: This portal is for doctors only.");
+          setLoading(false);
+          return;
+        }
+
+        const token = payload.token || data.token;
         localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("token", payload.token);
+        localStorage.setItem("token", token);
+        localStorage.setItem("doctorToken", token);
+        sessionStorage.setItem("user", JSON.stringify(user));
+        sessionStorage.setItem("token", token);
         localStorage.setItem("doctorId", user._id || user.id);
         navigate("/home");
       } else {
-        setError(data.message || data.error || "User not found.");
+        setError(data.message || data.error || "Invalid email or password.");
       }
     } catch (error) {
       console.error("Error:", error);

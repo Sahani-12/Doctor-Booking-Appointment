@@ -31,7 +31,7 @@ export default function BillPaymentModal({
     setError("");
 
     try {
-      const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
       const response = await axios.post(
         `${BASE_URL}/hospital/bills/pay`,
         {
@@ -79,8 +79,10 @@ export default function BillPaymentModal({
     setError("");
 
     try {
-      const token = sessionStorage.getItem("token");
-      const user = JSON.parse(sessionStorage.getItem("user") || "{}");
+      const token = sessionStorage.getItem("token") || localStorage.getItem("token");
+      const user = JSON.parse(
+        sessionStorage.getItem("user") || localStorage.getItem("user") || "{}",
+      );
 
       const response = await axios.post(
         `${BASE_URL}/hospital/bills/razorpay-order`,

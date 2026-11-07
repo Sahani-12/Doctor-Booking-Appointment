@@ -39,7 +39,7 @@ interface Doctor {
 }
 
 export default function DoctorsPage() {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,6 +95,11 @@ export default function DoctorsPage() {
       });
 
       if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          logout();
+          window.location.href = "/login";
+          return;
+        }
         throw new Error(`Failed to fetch doctors: ${response.status}`);
       }
 

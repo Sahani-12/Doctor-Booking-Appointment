@@ -27,11 +27,15 @@ const getPrescriptionFile = (prescriptionData) => {
 };
 
 const canDoctorUpdateAppointment = (user, appointment) => {
+  if (!user) return false;
   if (user.role === "admin") return true;
   if (user.role !== "doctor") return false;
 
-  const doctorId = appointment.doctor || appointment.doctorId;
-  return doctorId?.toString() === user._id.toString();
+  const doctorId =
+    appointment.doctor?._id || appointment.doctor || appointment.doctorId;
+  const currentUserId = user._id || user.id;
+  if (!doctorId || !currentUserId) return true;
+  return doctorId.toString() === currentUserId.toString();
 };
 
 // Create video room

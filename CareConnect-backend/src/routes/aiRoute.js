@@ -72,11 +72,25 @@ router.post("/chat", async (req, res) => {
     let doctors = [];
     if (specialization) {
       try {
-        doctors = await Doctor.find({
+        const foundDocs = await Doctor.find({
           specialization: { $regex: `^${specialization}$`, $options: "i" },
         })
-          .select("name specialization experience fees rating")
+          .select("fullname specialization experience fee rating profileImage")
           .limit(5);
+
+        doctors = foundDocs.map((doc) => ({
+          _id: doc._id,
+          name: doc.fullname,
+          fullname: doc.fullname,
+          specialization: Array.isArray(doc.specialization)
+            ? doc.specialization.join(", ")
+            : doc.specialization,
+          experience: doc.experience || "N/A",
+          fees: doc.fee || 0,
+          fee: doc.fee || 0,
+          rating: doc.rating || 0,
+          profileImage: doc.profileImage || "",
+        }));
       } catch (err) {
         console.warn("Error fetching doctors for AI response:", err.message);
       }

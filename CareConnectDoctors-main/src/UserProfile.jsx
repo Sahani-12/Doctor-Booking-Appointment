@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { User, Save, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import { API_BASE } from "./constants/api";
 
 export default function UserProfile() {
   const [formData, setFormData] = useState({
@@ -16,7 +17,7 @@ export default function UserProfile() {
   const token = localStorage.getItem("token");
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+    fetch(`${API_BASE}/users/profile`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => res.json())
@@ -45,7 +46,7 @@ export default function UserProfile() {
     setMessage({ type: "", text: "" });
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+      const res = await fetch(`${API_BASE}/users/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

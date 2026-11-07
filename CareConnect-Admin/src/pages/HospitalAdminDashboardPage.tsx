@@ -33,7 +33,7 @@ const money = (value = 0) =>
   }).format(value || 0);
 
 export default function HospitalAdminDashboardPage() {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const [stats, setStats] = useState<Stats>({
     totalUsers: 0,
     totalDoctors: 0,
@@ -57,6 +57,11 @@ export default function HospitalAdminDashboardPage() {
         });
         const payload = await response.json();
         if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            logout();
+            window.location.href = "/login";
+            return;
+          }
           throw new Error(payload.message || "Failed to load admin dashboard");
         }
         setStats(payload.data as Stats);

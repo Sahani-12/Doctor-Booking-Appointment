@@ -23,6 +23,9 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
 class PaymentService {
   // Create Stripe payment intent
   async createStripePaymentIntent(appointmentId, userId, doctorId, amount) {
+    if (!stripe) {
+      throw new Error("Stripe is not configured. Set STRIPE_SECRET_KEY in backend .env");
+    }
     try {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert to cents
@@ -63,17 +66,24 @@ class PaymentService {
 
   // Confirm Stripe payment
   async confirmStripePayment(paymentIntentId, transactionId) {
+    if (!stripe) {
+      throw new Error("Stripe is not configured. Set STRIPE_SECRET_KEY in backend .env");
+    }
     try {
       const paymentIntent =
         await stripe.paymentIntents.retrieve(paymentIntentId);
 
       if (paymentIntent.status === "succeeded") {
         // Update transaction
+        const chargeId =
+          paymentIntent.latest_charge ||
+          paymentIntent.charges?.data?.[0]?.id ||
+          "";
         const transaction = await Transaction.findByIdAndUpdate(
           transactionId,
           {
             status: "success",
-            stripeChargeId: paymentIntent.charges.data[0].id,
+            stripeChargeId: chargeId,
             gatewayResponse: paymentIntent,
           },
           { new: true },

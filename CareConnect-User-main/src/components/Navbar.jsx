@@ -303,6 +303,8 @@ const Navbar = () => {
                   onClick={() => {
                     sessionStorage.removeItem("user");
                     sessionStorage.removeItem("token");
+                    localStorage.removeItem("userProfile");
+                    localStorage.removeItem("token");
                     setUserName(null);
                     setUserImage(null);
                     navigate("/");
@@ -488,6 +490,8 @@ const Navbar = () => {
                   onClick={() => {
                     sessionStorage.removeItem("user");
                     sessionStorage.removeItem("token");
+                    localStorage.removeItem("userProfile");
+                    localStorage.removeItem("token");
                     setUserName(null);
                     setUserImage(null);
                     toggleNavbar();

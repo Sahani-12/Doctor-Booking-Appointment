@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
+import { resolveMediaUrl } from "../utils/mediaUrl";
 
 // Assume these icons are imported from an icon library
 import {
   CalendarIcon,
   ChevronDownIcon,
+  DollarLineIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
@@ -54,6 +56,11 @@ const managementItems: NavItem[] = [
     path: "/appointments",
   },
   {
+    icon: <DollarLineIcon />,
+    name: "Invoices & Billing",
+    path: "/billing",
+  },
+  {
     icon: <UserCircleIcon />,
     name: "Profile & Settings",
     path: "/profile",
@@ -71,7 +78,34 @@ const AppSidebar: React.FC = () => {
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>(
     {},
   );
+  const [doctorImage, setDoctorImage] = useState<string>("");
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    const handleProfileUpdate = (event?: any) => {
+      if (event?.detail?.profileImage) {
+        setDoctorImage(event.detail.profileImage);
+        return;
+      }
+      const raw =
+        localStorage.getItem("user") || sessionStorage.getItem("user");
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.profileImage) setDoctorImage(parsed.profileImage);
+        } catch {}
+      }
+    };
+
+    handleProfileUpdate();
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+    window.addEventListener("storage", handleProfileUpdate);
+
+    return () => {
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
+      window.removeEventListener("storage", handleProfileUpdate);
+    };
+  }, []);
 
   // const isActive = (path: string) => location.pathname === path;
   const isActive = useCallback(
@@ -274,34 +308,29 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link to="/home">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              {/* <img
-                className="dark:hidden"
-                src="/images/logo/logo1.png"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <img
-                className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
-                alt="Logo"
-                width={150}
-                height={40}
-              /> */}
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                CareConnect
-              </p>
-            </>
+        <Link to="/home" className="flex items-center gap-3">
+          {doctorImage ? (
+            <img
+              src={resolveMediaUrl(doctorImage)}
+              alt="Doctor Logo"
+              className="h-10 w-10 rounded-full object-cover border-2 border-teal-500/40 shrink-0 shadow-sm"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "/images/logo/logo-icon.svg";
+              }}
+            />
           ) : (
             <img
               src="/images/logo/logo-icon.svg"
               alt="Logo"
               width={32}
               height={32}
+              className="shrink-0"
             />
+          )}
+          {(isExpanded || isHovered || isMobileOpen) && (
+            <p className="text-2xl font-bold text-gray-900 dark:text-white truncate">
+              CareConnect
+            </p>
           )}
         </Link>
       </div>

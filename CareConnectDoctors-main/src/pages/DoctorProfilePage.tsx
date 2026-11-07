@@ -19,26 +19,31 @@ import { Button } from "../components/ui/modern/Button";
 import { Modal } from "../components/ui/modern/Modal";
 import { Badge } from "../components/ui/modern/Badge";
 import { API_BASE } from "../constants/api";
+import { resolveMediaUrl } from "../utils/mediaUrl";
 
 interface DoctorProfile {
   _id: string;
-  name: string;
+  name?: string;
+  fullname?: string;
   email: string;
   phone: string;
-  specialization: string;
-  hospital: string;
+  specialization: string | string[];
+  hospital?: string;
+  location?: string;
   licenseNumber: string;
-  experience: number;
-  qualifications: string;
+  experience: number | string;
+  qualifications?: string | string[];
+  degrees?: string | string[];
   profileImage?: string;
-  availability: {
+  availability?: {
     day: string;
     startTime: string;
     endTime: string;
   }[];
-  bio: string;
-  isApproved: boolean;
-  createdAt: string;
+  bio?: string;
+  description?: string;
+  isApproved?: boolean;
+  createdAt?: string;
 }
 
 export default function DoctorProfilePage() {
@@ -63,47 +68,77 @@ export default function DoctorProfilePage() {
     bio: "",
   });
 
-  const token = localStorage.getItem("token");
-  const doctorId = localStorage.getItem("doctorId");
+  const token =
+    localStorage.getItem("token") ||
+    localStorage.getItem("doctorToken") ||
+    sessionStorage.getItem("token") ||
+    sessionStorage.getItem("doctorToken");
+  const [doctorId, setDoctorId] = useState(
+    localStorage.getItem("doctorId") || "",
+  );
 
   useEffect(() => {
-    if (token && doctorId) {
+    if (token) {
       fetchProfile();
+    } else {
+      setLoading(false);
     }
-  }, [token, doctorId]);
+  }, [token]);
+
+  const populateForm = (data: any) => {
+    if (!data) return;
+    if (data._id) {
+      setDoctorId(data._id);
+      localStorage.setItem("doctorId", data._id);
+    }
+    setProfile({ ...data, _fetched: Date.now() });
+    setPreviewImage(data.profileImage || "");
+    setFormData({
+      name: data.fullname || data.name || "",
+      phone: data.phone || "",
+      specialization: Array.isArray(data.specialization)
+        ? data.specialization.join(", ")
+        : data.specialization || "",
+      hospital: data.location || data.hospital || "",
+      qualifications: Array.isArray(data.degrees)
+        ? data.degrees.join(", ")
+        : Array.isArray(data.qualifications)
+          ? data.qualifications.join(", ")
+          : data.degrees || data.qualifications || "",
+      experience: String(data.experience || ""),
+      licenseNumber: data.licenseNumber || "",
+      bio: data.description || data.bio || "",
+    });
+  };
 
   const fetchProfile = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await fetch(`${API_BASE}/doctors/${doctorId}`, {
+      // Try GET /doctors/profile first (uses auth token directly)
+      let response = await fetch(`${API_BASE}/doctors/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
+      // Fallback to /doctors/:id if profile route is not found
+      if (!response.ok && doctorId) {
+        response = await fetch(`${API_BASE}/doctors/${doctorId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+
       if (!response.ok) {
-        throw new Error("Failed to fetch profile");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to fetch profile");
       }
 
       const data = await response.json();
-      setProfile({ ...data.data, _fetched: Date.now() });
-      setPreviewImage(data.data.profileImage || "");
-      setFormData({
-        name: data.data.fullname || data.data.name || "",
-        phone: data.data.phone || "",
-        specialization: Array.isArray(data.data.specialization)
-          ? data.data.specialization.join(", ")
-          : data.data.specialization || "",
-        hospital: data.data.location || data.data.hospital || "",
-        qualifications: Array.isArray(data.data.degrees)
-          ? data.data.degrees.join(", ")
-          : data.data.degrees || "",
-        experience: data.data.experience || "",
-        licenseNumber: data.data.licenseNumber || "",
-        bio: data.data.description || data.data.bio || "",
-      });
+      populateForm(data.data || data);
       console.log("✅ Fetched doctor profile");
     } catch (err: any) {
       console.error("❌ Fetch error:", err.message);
@@ -113,24 +148,84 @@ export default function DoctorProfilePage() {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1000;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL("image/jpeg", 0.85));
+          } else {
+            resolve(e.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(e.target?.result as string);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setPreviewImage(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setPreviewImage(compressed);
+      } catch {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setPreviewImage(event.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
   const uploadImage = async (file: File): Promise<string> => {
-    // Since the backend route /api/doctors/upload-profile-image is missing,
-    // we will return the base64 string generated during file selection.
-    // The update API (PUT /api/doctors/profile) will save this base64 string
-    // directly into the doctor's profileImage field in the database.
-    return new Promise((resolve) => resolve(previewImage));
+    // 1. Try uploading to backend multer endpoint
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append("image", file);
+      const res = await fetch(`${API_BASE}/doctors/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: uploadFormData,
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.url || json.data?.url) {
+          return json.url || json.data.url;
+        }
+      }
+    } catch (uploadErr) {
+      console.warn("Upload via multipart endpoint failed, falling back to compressed base64", uploadErr);
+    }
+
+    // 2. Fallback to previewImage (compressed base64)
+    return previewImage;
   };
 
   const handleUpdate = async () => {
@@ -147,18 +242,25 @@ export default function DoctorProfilePage() {
 
       const updateData = {
         fullname: formData.name,
+        name: formData.name,
         phone: formData.phone,
         specialization: formData.specialization
           .split(",")
           .map((s) => s.trim())
-          .filter((s) => s),
+          .filter(Boolean),
         location: formData.hospital,
+        hospital: formData.hospital,
         degrees: formData.qualifications
           .split(",")
           .map((s) => s.trim())
-          .filter((s) => s),
+          .filter(Boolean),
+        qualifications: formData.qualifications
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
         experience: formData.experience,
         description: formData.bio,
+        bio: formData.bio,
         licenseNumber: formData.licenseNumber,
         profileImage: profileImageUrl,
       };
@@ -173,43 +275,61 @@ export default function DoctorProfilePage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update profile");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.message || errorData.error || "Failed to update profile",
+        );
       }
 
       const data = await response.json();
-      setProfile({ ...data.data, _updated: Date.now() });
+      const updatedDoctor = data.data || data;
+
+      setProfile({ ...updatedDoctor, _updated: Date.now() });
       setSelectedFile(null);
       setSuccess("Profile updated successfully!");
       setIsEditing(false);
       setUpdateKey((prev) => prev + 1);
 
-      // Update localStorage with new profile image
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
-          parsedUser.profileImage = profileImageUrl;
-          localStorage.setItem("user", JSON.stringify(parsedUser));
-        } catch (e) {
-          console.error("Failed to update localStorage", e);
-        }
+      // Synchronize updated user profile and image across localStorage & sessionStorage
+      const savedImage = updatedDoctor.profileImage || profileImageUrl;
+      const syncStorage = (storage: Storage) => {
+        const raw = storage.getItem("user");
+        let parsed = raw ? JSON.parse(raw) : {};
+        parsed = {
+          ...parsed,
+          ...updatedDoctor,
+          fullname: updatedDoctor.fullname || formData.name,
+          profileImage: savedImage,
+        };
+        storage.setItem("user", JSON.stringify(parsed));
+      };
+      try {
+        syncStorage(localStorage);
+        syncStorage(sessionStorage);
+      } catch (e) {
+        console.error("Failed to update user storage", e);
       }
 
-      // Trigger header re-render by dispatching custom event
+      // Trigger header and dropdown re-render across the entire doctor portal
       window.dispatchEvent(new Event("profileUpdated"));
-      console.log("✅ Profile updated");
+      window.dispatchEvent(
+        new CustomEvent("profileUpdated", {
+          detail: { profileImage: savedImage },
+        }),
+      );
+      console.log("✅ Profile updated successfully");
 
       // Clear success message after 3 seconds
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: any) {
       console.error("❌ Update error:", err.message);
-      setError(err.message);
+      setError(err.message || "Failed to update profile");
     } finally {
       setUpdating(false);
     }
   };
 
-  if (!token || !doctorId) {
+  if (!token) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <p className="text-red-600">Please login to view your profile</p>
@@ -263,7 +383,7 @@ export default function DoctorProfilePage() {
                     <div className="relative">
                       {previewImage ? (
                         <img
-                          src={previewImage}
+                          src={resolveMediaUrl(previewImage) || previewImage}
                           alt="Doctor Profile"
                           className="w-32 h-32 rounded-full object-cover border-4 border-blue-500"
                         />

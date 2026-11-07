@@ -7,9 +7,9 @@ import BASE_URL from "@/constants/api";
 
 // Helper: Get token from session
 const getAuthHeaders = () => {
-  const token = sessionStorage.getItem("token");
+  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
   return {
-    Authorization: `Bearer ${token}`,
+    Authorization: token ? `Bearer ${token}` : "",
     "Content-Type": "application/json",
   };
 };
@@ -20,6 +20,8 @@ const parseResponse = async (response) => {
     if (response.status === 401) {
       sessionStorage.removeItem("token");
       sessionStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("userProfile");
       window.location.href = "/login";
     }
     const error = await response.json().catch(() => ({}));
@@ -33,7 +35,7 @@ export const hospitalAPI = {
   // Dashboard overview
   getDashboardOverview: async () => {
     const response = await fetch(
-      `${BASE_URL}/api/hospital/dashboard/overview`,
+      `${BASE_URL}/hospital/dashboard/overview`,
       {
         headers: getAuthHeaders(),
       },
@@ -44,7 +46,7 @@ export const hospitalAPI = {
   // Patient summary with all data
   getPatientSummary: async (patientId) => {
     const response = await fetch(
-      `${BASE_URL}/api/hospital/patients/${patientId}/summary`,
+      `${BASE_URL}/hospital/patients/${patientId}/summary`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -54,14 +56,14 @@ export const hospitalAPI = {
   getAppointments: async (filters = {}) => {
     const query = new URLSearchParams(filters).toString();
     const response = await fetch(
-      `${BASE_URL}/api/appointments${query ? "?" + query : ""}`,
+      `${BASE_URL}/appointments${query ? "?" + query : ""}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
   },
 
   getMyAppointments: async () => {
-    const response = await fetch(`${BASE_URL}/api/appointments/my`, {
+    const response = await fetch(`${BASE_URL}/appointments/my`, {
       headers: getAuthHeaders(),
     });
     return parseResponse(response);
@@ -69,7 +71,7 @@ export const hospitalAPI = {
 
   getAppointmentById: async (appointmentId) => {
     const response = await fetch(
-      `${BASE_URL}/api/appointments/${appointmentId}`,
+      `${BASE_URL}/appointments/${appointmentId}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -77,7 +79,7 @@ export const hospitalAPI = {
 
   updateAppointmentStatus: async (appointmentId, status) => {
     const response = await fetch(
-      `${BASE_URL}/api/appointments/${appointmentId}/status`,
+      `${BASE_URL}/appointments/${appointmentId}/status`,
       {
         method: "PUT",
         headers: getAuthHeaders(),
@@ -89,7 +91,7 @@ export const hospitalAPI = {
 
   cancelAppointment: async (appointmentId, reason = "") => {
     const response = await fetch(
-      `${BASE_URL}/api/appointments/${appointmentId}/cancel`,
+      `${BASE_URL}/appointments/${appointmentId}/cancel`,
       {
         method: "POST",
         headers: getAuthHeaders(),
@@ -103,7 +105,7 @@ export const hospitalAPI = {
   getMedicalRecords: async (filters = {}) => {
     const query = new URLSearchParams(filters).toString();
     const response = await fetch(
-      `${BASE_URL}/api/hospital/medical-records${query ? "?" + query : ""}`,
+      `${BASE_URL}/hospital/medical-records${query ? "?" + query : ""}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -111,7 +113,7 @@ export const hospitalAPI = {
 
   getMedicalRecordById: async (recordId) => {
     const response = await fetch(
-      `${BASE_URL}/api/hospital/medical-records/${recordId}`,
+      `${BASE_URL}/hospital/medical-records/${recordId}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -121,7 +123,7 @@ export const hospitalAPI = {
   getAdmissions: async (filters = {}) => {
     const query = new URLSearchParams(filters).toString();
     const response = await fetch(
-      `${BASE_URL}/api/hospital/admissions${query ? "?" + query : ""}`,
+      `${BASE_URL}/hospital/admissions${query ? "?" + query : ""}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -129,7 +131,7 @@ export const hospitalAPI = {
 
   getAdmissionById: async (admissionId) => {
     const response = await fetch(
-      `${BASE_URL}/api/hospital/admissions/${admissionId}`,
+      `${BASE_URL}/hospital/admissions/${admissionId}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -139,7 +141,7 @@ export const hospitalAPI = {
   getLabOrders: async (filters = {}) => {
     const query = new URLSearchParams(filters).toString();
     const response = await fetch(
-      `${BASE_URL}/api/hospital/lab-orders${query ? "?" + query : ""}`,
+      `${BASE_URL}/hospital/lab-orders${query ? "?" + query : ""}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -147,7 +149,7 @@ export const hospitalAPI = {
 
   getLabOrderById: async (labOrderId) => {
     const response = await fetch(
-      `${BASE_URL}/api/hospital/lab-orders/${labOrderId}`,
+      `${BASE_URL}/hospital/lab-orders/${labOrderId}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -157,14 +159,14 @@ export const hospitalAPI = {
   getBills: async (filters = {}) => {
     const query = new URLSearchParams(filters).toString();
     const response = await fetch(
-      `${BASE_URL}/api/hospital/bills${query ? "?" + query : ""}`,
+      `${BASE_URL}/hospital/bills${query ? "?" + query : ""}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
   },
 
   getBillById: async (billId) => {
-    const response = await fetch(`${BASE_URL}/api/hospital/bills/${billId}`, {
+    const response = await fetch(`${BASE_URL}/hospital/bills/${billId}`, {
       headers: getAuthHeaders(),
     });
     return parseResponse(response);
@@ -172,7 +174,7 @@ export const hospitalAPI = {
 
   // Departments
   getDepartments: async () => {
-    const response = await fetch(`${BASE_URL}/api/hospital/departments`, {
+    const response = await fetch(`${BASE_URL}/hospital/departments`, {
       headers: getAuthHeaders(),
     });
     return parseResponse(response);
@@ -183,7 +185,7 @@ export const hospitalAPI = {
 export const videoAPI = {
   // Create video room
   createRoom: async (appointmentId) => {
-    const response = await fetch(`${BASE_URL}/api/video/create-room`, {
+    const response = await fetch(`${BASE_URL}/video/create-room`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({ appointmentId }),
@@ -193,7 +195,7 @@ export const videoAPI = {
 
   // Join video session
   joinSession: async (roomId) => {
-    const response = await fetch(`${BASE_URL}/api/video/join-session`, {
+    const response = await fetch(`${BASE_URL}/video/join-session`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({ roomId }),
@@ -203,7 +205,7 @@ export const videoAPI = {
 
   // End video session
   endSession: async (sessionId) => {
-    const response = await fetch(`${BASE_URL}/api/video/end-session`, {
+    const response = await fetch(`${BASE_URL}/video/end-session`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify({ sessionId }),
@@ -213,7 +215,7 @@ export const videoAPI = {
 
   // Get session history
   getHistory: async () => {
-    const response = await fetch(`${BASE_URL}/api/video/history`, {
+    const response = await fetch(`${BASE_URL}/video/history`, {
       headers: getAuthHeaders(),
     });
     return parseResponse(response);
@@ -221,7 +223,7 @@ export const videoAPI = {
 
   // Get specific session details
   getSessionDetails: async (sessionId) => {
-    const response = await fetch(`${BASE_URL}/api/video/session/${sessionId}`, {
+    const response = await fetch(`${BASE_URL}/video/session/${sessionId}`, {
       headers: getAuthHeaders(),
     });
     return parseResponse(response);
@@ -229,7 +231,7 @@ export const videoAPI = {
 
   // Save prescription after video call
   savePrescription: async (prescriptionData) => {
-    const response = await fetch(`${BASE_URL}/api/video/save-prescription`, {
+    const response = await fetch(`${BASE_URL}/video/save-prescription`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(prescriptionData),
@@ -242,7 +244,7 @@ export const videoAPI = {
 export const userAPI = {
   // Get user profile
   getProfile: async () => {
-    const response = await fetch(`${BASE_URL}/api/users/profile`, {
+    const response = await fetch(`${BASE_URL}/users/profile`, {
       headers: getAuthHeaders(),
     });
     return parseResponse(response);
@@ -250,7 +252,7 @@ export const userAPI = {
 
   // Update user profile
   updateProfile: async (profileData) => {
-    const response = await fetch(`${BASE_URL}/api/users/profile`, {
+    const response = await fetch(`${BASE_URL}/users/profile`, {
       method: "PUT",
       headers: getAuthHeaders(),
       body: JSON.stringify(profileData),
@@ -264,7 +266,7 @@ export const userAPI = {
     formData.append("image", file);
 
     const token = sessionStorage.getItem("token");
-    const response = await fetch(`${BASE_URL}/api/users/profile/image`, {
+    const response = await fetch(`${BASE_URL}/users/profile/image`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
@@ -274,7 +276,7 @@ export const userAPI = {
 
   // Get user documents
   getDocuments: async () => {
-    const response = await fetch(`${BASE_URL}/api/users/documents`, {
+    const response = await fetch(`${BASE_URL}/users/documents`, {
       headers: getAuthHeaders(),
     });
     return parseResponse(response);
@@ -287,7 +289,7 @@ export const userAPI = {
     if (message) formData.append("message", message);
 
     const token = sessionStorage.getItem("token");
-    const response = await fetch(`${BASE_URL}/api/users/documents`, {
+    const response = await fetch(`${BASE_URL}/users/documents`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
       body: formData,
@@ -298,7 +300,7 @@ export const userAPI = {
   // Delete document
   deleteDocument: async (documentId) => {
     const response = await fetch(
-      `${BASE_URL}/api/users/documents/${documentId}`,
+      `${BASE_URL}/users/documents/${documentId}`,
       {
         method: "DELETE",
         headers: getAuthHeaders(),
@@ -314,7 +316,7 @@ export const doctorAPI = {
   getAllDoctors: async (filters = {}) => {
     const query = new URLSearchParams(filters).toString();
     const response = await fetch(
-      `${BASE_URL}/api/doctors${query ? "?" + query : ""}`,
+      `${BASE_URL}/doctors${query ? "?" + query : ""}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -322,7 +324,7 @@ export const doctorAPI = {
 
   // Get doctor by ID
   getDoctorById: async (doctorId) => {
-    const response = await fetch(`${BASE_URL}/api/doctors/${doctorId}`, {
+    const response = await fetch(`${BASE_URL}/doctors/${doctorId}`, {
       headers: getAuthHeaders(),
     });
     return parseResponse(response);
@@ -331,7 +333,7 @@ export const doctorAPI = {
   // Get doctor availability
   getDoctorAvailability: async (doctorId, date) => {
     const response = await fetch(
-      `${BASE_URL}/api/appointments/slots/${doctorId}/${date}`,
+      `${BASE_URL}/appointments/slots/${doctorId}/${date}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -342,7 +344,7 @@ export const doctorAPI = {
 export const appointmentAPI = {
   // Create appointment
   createAppointment: async (appointmentData) => {
-    const response = await fetch(`${BASE_URL}/api/appointments`, {
+    const response = await fetch(`${BASE_URL}/appointments`, {
       method: "POST",
       headers: getAuthHeaders(),
       body: JSON.stringify(appointmentData),
@@ -353,7 +355,7 @@ export const appointmentAPI = {
   // Get appointment details
   getAppointmentDetails: async (appointmentId) => {
     const response = await fetch(
-      `${BASE_URL}/api/appointments/${appointmentId}`,
+      `${BASE_URL}/appointments/${appointmentId}`,
       { headers: getAuthHeaders() },
     );
     return parseResponse(response);
@@ -362,7 +364,7 @@ export const appointmentAPI = {
   // Rate appointment
   rateAppointment: async (appointmentId, rating, feedback) => {
     const response = await fetch(
-      `${BASE_URL}/api/appointments/${appointmentId}/rate`,
+      `${BASE_URL}/appointments/${appointmentId}/rate`,
       {
         method: "POST",
         headers: getAuthHeaders(),

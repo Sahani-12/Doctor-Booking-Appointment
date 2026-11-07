@@ -45,7 +45,7 @@ const Consult = () => {
 
   const minDate = useMemo(() => new Date().toISOString().split("T")[0], []);
 
-  // Fetch slots
+  // Fetch slots (publicly viewable with optional auth)
   useEffect(() => {
     if (!doctor?._id || !formData.date) {
       setSlots([]);
@@ -57,10 +57,19 @@ const Consult = () => {
 
     (async () => {
       try {
-        const res = await authFetch(
-          `/appointments/slots/${doctor._id}/${formData.date}`,
-          { method: "GET" },
+        const token =
+          sessionStorage.getItem("token") || localStorage.getItem("token");
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+        const res = await fetch(
+          `${BASE_URL}/appointments/slots/${doctor._id}/${formData.date}`,
+          { headers },
         );
+        if (!res.ok) {
+          if (!cancelled) setSlots([]);
+          return;
+        }
         const data = await res.json();
         const list = data.data?.slots ?? [];
         if (!cancelled) setSlots(Array.isArray(list) ? list : []);
@@ -84,6 +93,14 @@ const Consult = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const token =
+      sessionStorage.getItem("token") || localStorage.getItem("token");
+    if (!token) {
+      alert("Please log in first to book an appointment with this doctor.");
+      navigate("/login");
+      return;
+    }
+
     if (!selectedSlot) {
       alert("Please select an available time slot.");
       return;
@@ -97,12 +114,6 @@ const Consult = () => {
     setBookingLoading(true);
 
     try {
-      const token = sessionStorage.getItem("token");
-      if (!token) {
-        alert("Please log in first.");
-        navigate("/login");
-        return;
-      }
 
       const response = await axios.post(
         `${BASE_URL}/appointments`,
@@ -277,10 +288,26 @@ const Consult = () => {
               </div>
             </div>
 
+            {!sessionStorage.getItem("token") &&
+              !localStorage.getItem("token") && (
+                <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between">
+                  <span>
+                    ⚠️ You must be logged in to confirm an appointment.
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/login")}
+                    className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold text-xs transition cursor-pointer"
+                  >
+                    Log In
+                  </button>
+                </div>
+              )}
+
             <button
               type="submit"
               disabled={bookingLoading}
-              className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-3 rounded-xl font-semibold"
+              className="w-full bg-gradient-to-r from-teal-600 to-emerald-600 text-white py-3 rounded-xl font-semibold cursor-pointer"
             >
               {bookingLoading ? "Booking..." : "Confirm & Pay"}
             </button>

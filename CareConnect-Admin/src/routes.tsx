@@ -18,8 +18,24 @@ import AdminBilling from "./pages/AdminBilling";
 import HospitalApprovalsPage from "./pages/HospitalApprovalsPage";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { token } = useAuth();
-  if (!token) return <Navigate to="/login" />;
+  const { token, admin, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-300">
+        <div className="flex items-center gap-3">
+          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span>Authenticating...</span>
+        </div>
+      </div>
+    );
+  }
+
+  const role = admin?.role?.toLowerCase();
+  if (!token || (role !== "admin" && role !== "doctor")) {
+    return <Navigate to="/login" replace />;
+  }
+
   return <>{children}</>;
 };
 

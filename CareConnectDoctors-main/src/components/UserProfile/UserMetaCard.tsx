@@ -70,7 +70,10 @@ export default function UserMetaCard({ doctor, onSaved }: Props) {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const token = sessionStorage.getItem("token");
+      const token =
+        sessionStorage.getItem("token") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("doctorToken");
       const payload: Record<string, unknown> = {
         fullname: form.fullname,
         phone: form.phone,
@@ -104,6 +107,25 @@ export default function UserMetaCard({ doctor, onSaved }: Props) {
       });
       const j = await res.json();
       if (j.success) {
+        // Sync storage
+        const savedDoctor = j.data || {};
+        const syncUser = (storage: Storage) => {
+          const raw = storage.getItem("user");
+          const existing = raw ? JSON.parse(raw) : {};
+          storage.setItem("user", JSON.stringify({ ...existing, ...savedDoctor }));
+        };
+        try {
+          syncUser(localStorage);
+          syncUser(sessionStorage);
+        } catch {}
+
+        window.dispatchEvent(new Event("profileUpdated"));
+        window.dispatchEvent(
+          new CustomEvent("profileUpdated", {
+            detail: { profileImage: savedDoctor.profileImage || form.profileImage },
+          }),
+        );
+
         onSaved();
         closeModal();
       } else alert(j.message || "Save failed");

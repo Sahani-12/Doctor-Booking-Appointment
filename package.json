@@ -1,0 +1,15 @@
+{
+  "name": "careconnect-hospital-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CareConnect Hospital Management System - Microservices & Multi-Portal System",
+  "scripts": {
+    "start:backend": "npm --prefix CareConnect-backend start",
+    "start:user": "npm --prefix CareConnect-User-main run dev",
+    "start:doctor": "npm --prefix CareConnectDoctors-main run dev",
+    "start:admin": "npm --prefix CareConnect-Admin run dev",
+    "dev:backend": "npm --prefix CareConnect-backend run dev",
+    "install:all": "npm --prefix CareConnect-backend install && npm --prefix CareConnect-User-main install && npm --prefix CareConnectDoctors-main install && npm --prefix CareConnect-Admin install"
+  }
+}
+

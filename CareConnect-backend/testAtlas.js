@@ -1,13 +1,17 @@
+require("dotenv").config();
 const mongoose = require("mongoose");
 console.log("Starting...");
 
+const mongoURI = process.env.MONGO_URI || process.env.MONGODB_URI;
+if (!mongoURI) {
+  console.error("❌ Set MONGO_URI in .env file before running this script.");
+  process.exit(1);
+}
+
 (async () => {
   try {
-    console.log("Connecting to Atlas...");
-    const conn = await mongoose.connect(
-      "mongodb+srv://anandsahani617_db_user:anand121@cluster0.aq1naoq.mongodb.net/careconnect?retryWrites=true&w=majority",
-      { serverSelectionTimeoutMS: 5000 },
-    );
+    console.log("Connecting to MongoDB...");
+    const conn = await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 5000 });
 
     console.log("Connected!");
 

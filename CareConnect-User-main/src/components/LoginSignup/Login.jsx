@@ -8,6 +8,7 @@ const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -17,6 +18,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     try {
       const response = await fetch(`${BASE_URL}/auth/login`, {
@@ -32,12 +34,14 @@ const Login = () => {
         const user = data.data.user || data.data;
         const token = data.data.token;
 
-        // Clear previous user's data from localStorage
+        // Clear previous user's data
         localStorage.removeItem("userProfile");
+        localStorage.removeItem("token");
         sessionStorage.setItem("user", JSON.stringify(user));
         sessionStorage.setItem("token", token);
         // Save to localStorage for persistence across sessions
         localStorage.setItem("userProfile", JSON.stringify(user));
+        localStorage.setItem("token", token);
 
         // Fetch full profile to get latest image/avatar
         try {
@@ -69,11 +73,12 @@ const Login = () => {
 
         navigate(`/`);
       } else {
-        alert(data.message || data.error || "Login failed");
+        const errorMsg = data.message || data.error || "Login failed";
+        setError(errorMsg);
       }
     } catch (error) {
       console.error("Error:", error);
-      alert("Something went wrong");
+      setError("Unable to connect to server. Please try again later.");
     }
 
     setLoading(false);
@@ -90,6 +95,13 @@ const Login = () => {
         <p className="text-center text-gray-500 dark:text-gray-400 mb-6">
           Login to your CareConnect account
         </p>
+
+        {/* Error Alert */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg text-sm text-center">
+            {error}
+          </div>
+        )}
 
         {/* Form */}
         <form className="space-y-5" onSubmit={handleSubmit}>

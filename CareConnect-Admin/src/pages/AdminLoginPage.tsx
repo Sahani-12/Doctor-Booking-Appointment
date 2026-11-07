@@ -156,11 +156,45 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Info Card */}
-        <div className="mt-6 p-4 bg-slate-800/30 backdrop-blur-sm border border-slate-700/30 rounded-lg">
-          <p className="text-slate-400 text-xs text-center">
-            💡 <span className="font-semibold">Demo Credentials:</span> Use your
-            admin email to sign in securely
+        <div className="mt-6 p-4 bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-slate-400 font-medium">🔑 Demo Admin / Staff Credentials:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setFormData({
+                  email: "admin@careconnect.com",
+                  password: "admin123",
+                });
+              }}
+              className="text-xs text-blue-400 hover:text-blue-300 underline font-semibold transition"
+            >
+              Fill Credentials
+            </button>
+          </div>
+          <div className="text-xs text-slate-400 font-mono bg-slate-900/60 p-2 rounded border border-slate-700/30 flex justify-between">
+            <span>admin@careconnect.com</span>
+            <span>admin123</span>
+          </div>
+          <p className="text-[11px] text-slate-500 pt-1">
+            Doctors can also sign in directly using their registered credentials.
           </p>
+        </div>
+
+        {/* Portal Links */}
+        <div className="mt-4 flex items-center justify-between text-xs text-slate-400 px-1">
+          <a
+            href="http://localhost:5174"
+            className="hover:text-blue-400 transition flex items-center gap-1"
+          >
+            🩺 Doctor Portal (5174) &rarr;
+          </a>
+          <a
+            href="http://localhost:5173"
+            className="hover:text-blue-400 transition flex items-center gap-1"
+          >
+            🏥 Patient Portal (5173) &rarr;
+          </a>
         </div>
       </div>
     </div>

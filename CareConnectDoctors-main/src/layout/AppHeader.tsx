@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
@@ -8,7 +8,6 @@ import UserDropdown from "../components/header/UserDropdown";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
-  const [doctorImage, setDoctorImage] = useState<string>("");
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
@@ -34,39 +33,10 @@ const AppHeader: React.FC = () => {
       }
     };
 
-    const handleProfileUpdated = () => {
-      const userData = localStorage.getItem("user");
-      if (userData) {
-        try {
-          const parsedUser = JSON.parse(userData);
-          if (parsedUser.profileImage) {
-            setDoctorImage(parsedUser.profileImage);
-          }
-        } catch (error) {
-          console.error("Failed to parse user data", error);
-        }
-      }
-    };
-
     document.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("profileUpdated", handleProfileUpdated);
-
-    // Load doctor image from localStorage
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      try {
-        const parsedUser = JSON.parse(userData);
-        if (parsedUser.profileImage) {
-          setDoctorImage(parsedUser.profileImage);
-        }
-      } catch (error) {
-        console.error("Failed to parse user data", error);
-      }
-    }
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("profileUpdated", handleProfileUpdated);
     };
   }, []);
 
@@ -113,18 +83,10 @@ const AppHeader: React.FC = () => {
             {/* Cross Icon */}
           </button>
 
-          <Link to="/home" className="lg:hidden flex items-center gap-2">
-            {doctorImage ? (
-              <img
-                src={doctorImage}
-                alt="Doctor Logo"
-                className="h-10 w-10 rounded-full object-cover"
-              />
-            ) : (
-              <h3 className="text-4xl font-bold text-gray-900 dark:text-white">
-                CareConnect
-              </h3>
-            )}
+          <Link to="/home" className="lg:hidden flex items-center">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+              CareConnect
+            </h3>
           </Link>
 
           <button

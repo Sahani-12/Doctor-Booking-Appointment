@@ -450,6 +450,16 @@ export default function PatientsHubPage() {
                 </p>
               </button>
             ))}
+            {!patients.length && (
+              <div className="text-center py-8 px-2">
+                <p className="text-sm font-medium text-slate-300">
+                  No patients assigned yet
+                </p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Patients will appear here once they book an appointment with you or are admitted under your care.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -973,8 +983,14 @@ export default function PatientsHubPage() {
               </div>
             </>
           ) : (
-            <div className="rounded-3xl border border-dashed border-slate-700 p-6 text-sm text-slate-400">
-              Select a patient to load the hospital timeline.
+            <div className="rounded-3xl border border-dashed border-slate-700 p-12 text-center text-slate-400 bg-slate-900/50">
+              <ClipboardList className="mx-auto h-12 w-12 text-slate-600 mb-3" />
+              <h3 className="text-lg font-semibold text-white">No Patient Selected</h3>
+              <p className="text-sm mt-1 text-slate-400">
+                {patients.length
+                  ? "Select a patient from your roster on the left to review their clinical timeline."
+                  : "You have no active patients yet. Once appointments are booked or patients are admitted under your care, their history and records will appear here."}
+              </p>
             </div>
           )}
         </div>

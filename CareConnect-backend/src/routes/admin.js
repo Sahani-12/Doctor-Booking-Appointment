@@ -20,8 +20,8 @@ const {
 
 const router = express.Router();
 
-// Protect all admin routes with authentication and authorization
-router.use(protect, authorize("admin"));
+// Protect all admin routes with authentication and authorization (admins and clinical doctors)
+router.use(protect, authorize("admin", "doctor"));
 
 // Dashboard
 router.get("/dashboard", getDashboard);

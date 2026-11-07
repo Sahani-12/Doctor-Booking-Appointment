@@ -32,7 +32,7 @@ export default function Header() {
           </div>
           <div>
             <h2 className="text-lg font-bold text-white">
-             Welcome, <b>Anand</b>
+             Welcome, <b>{admin?.name || admin?.fullname || "Admin"}</b>
             </h2>
             <p className="text-xs text-slate-400">
               {new Date().toLocaleDateString("en-IN", {

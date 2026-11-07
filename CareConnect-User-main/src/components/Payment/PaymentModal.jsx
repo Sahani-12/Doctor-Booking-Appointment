@@ -34,7 +34,8 @@ function DemoPaymentForm({ appointmentId, amount, doctorName, onSuccess, onCance
     setLoading(true);
     setError(null);
     try {
-      const token = sessionStorage.getItem("token");
+      const token =
+        sessionStorage.getItem("token") || localStorage.getItem("token");
       const { data } = await axios.post(
         `${BASE_URL}/payments/demo-complete`,
         { appointmentId, amount: Number(amount) },
@@ -131,7 +132,8 @@ const RealPaymentForm = ({
     setError(null);
 
     try {
-      const token = sessionStorage.getItem("token");
+      const token =
+        sessionStorage.getItem("token") || localStorage.getItem("token");
 
       const { data: paymentData } = await axios.post(
         `${BASE_URL}/payments/stripe/create-payment`,
@@ -194,7 +196,8 @@ const RealPaymentForm = ({
     setError(null);
 
     try {
-      const token = sessionStorage.getItem("token");
+      const token =
+        sessionStorage.getItem("token") || localStorage.getItem("token");
 
       const { data: orderData } = await axios.post(
         `${BASE_URL}/payments/razorpay/create-order`,

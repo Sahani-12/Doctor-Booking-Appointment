@@ -23,26 +23,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load token from localStorage on mount
-    try {
-      const savedToken = localStorage.getItem("adminToken");
-      const savedAdmin = localStorage.getItem("admin");
+    const initAuth = async () => {
+      try {
+        const savedToken = localStorage.getItem("adminToken");
+        const savedAdmin = localStorage.getItem("admin");
 
-      if (savedToken && savedAdmin && savedAdmin !== "undefined") {
-        setToken(savedToken);
-        setAdmin(JSON.parse(savedAdmin));
-      } else {
-        // Clear corrupted data
+        if (savedToken) {
+          // Verify token against backend to ensure active valid admin session
+          const res = await fetch(`${API_BASE}/auth/me`, {
+            headers: { Authorization: `Bearer ${savedToken}` },
+          });
+
+          if (res.ok) {
+            const data = await res.json();
+            const currentUser = data?.data;
+            const role = currentUser?.role?.toLowerCase();
+            if (role === "admin" || role === "doctor") {
+              setToken(savedToken);
+              setAdmin(currentUser);
+              localStorage.setItem("admin", JSON.stringify(currentUser));
+            } else {
+              console.warn(
+                "⚠️ Non-staff token in Admin Portal. Role:",
+                currentUser?.role,
+              );
+              localStorage.removeItem("adminToken");
+              localStorage.removeItem("admin");
+              setToken(null);
+              setAdmin(null);
+            }
+          } else {
+            console.warn("⚠️ Admin token verification failed, clearing session.");
+            localStorage.removeItem("adminToken");
+            localStorage.removeItem("admin");
+            setToken(null);
+            setAdmin(null);
+          }
+        } else {
+          localStorage.removeItem("adminToken");
+          localStorage.removeItem("admin");
+          setToken(null);
+          setAdmin(null);
+        }
+      } catch (error) {
+        console.error("Error verifying admin auth:", error);
         localStorage.removeItem("adminToken");
         localStorage.removeItem("admin");
+        setToken(null);
+        setAdmin(null);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error("Error loading auth from localStorage:", error);
-      localStorage.removeItem("adminToken");
-      localStorage.removeItem("admin");
-    }
+    };
 
-    setIsLoading(false);
+    void initAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -65,15 +99,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const data = await response.json();
-      console.log("✅ AuthContext: Got login data successfully");
-      console.log("   Token:", data.data.token?.substring(0, 20) + "...");
-      console.log("   Admin:", data.data.admin);
+      const adminData = data.data.admin || data.data.user;
 
+      if (adminData?.role !== "admin") {
+        throw new Error("Access denied: You are not authorized as an Administrator.");
+      }
+
+      console.log("✅ AuthContext: Got login data successfully");
       setToken(data.data.token);
-      setAdmin(data.data.admin);
+      setAdmin(adminData);
 
       localStorage.setItem("adminToken", data.data.token);
-      localStorage.setItem("admin", JSON.stringify(data.data.admin));
+      localStorage.setItem("admin", JSON.stringify(adminData));
 
       console.log("💾 AuthContext: Saved to localStorage");
     } catch (error) {

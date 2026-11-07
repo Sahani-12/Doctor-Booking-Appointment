@@ -32,37 +32,30 @@ router.get("/departments", getDepartments);
 router.use(protect);
 
 router.get("/dashboard/overview", getHospitalDashboard);
+router.get("/dashboard", getHospitalDashboard);
 router.get("/patients/:patientId/summary", getPatientSummary);
-router.get("/patients", authorize("doctor", "admin"), getPatients);
+router.get("/patients", getPatients);
 
 router.get("/medical-records", getMedicalRecords);
-router.post(
-  "/medical-records",
-  authorize("doctor", "admin"),
-  createMedicalRecord,
-);
-router.put(
-  "/medical-records/:id",
-  authorize("doctor", "admin"),
-  updateMedicalRecord,
-);
+router.post("/medical-records", createMedicalRecord);
+router.put("/medical-records/:id", updateMedicalRecord);
 
 router.get("/admissions", getAdmissions);
-router.post("/admissions", authorize("doctor", "admin"), createAdmission);
-router.put("/admissions/:id", authorize("doctor", "admin"), updateAdmission);
+router.post("/admissions", createAdmission);
+router.put("/admissions/:id", updateAdmission);
 
 router.get("/lab-orders", getLabOrders);
-router.post("/lab-orders", authorize("doctor", "admin"), createLabOrder);
-router.put("/lab-orders/:id", authorize("doctor", "admin"), updateLabOrder);
+router.post("/lab-orders", createLabOrder);
+router.put("/lab-orders/:id", updateLabOrder);
 
 router.get("/bills", getBills);
 router.post("/bills/pay", payBillDemo);
 router.post("/bills/razorpay-order", createRazorpayBillOrder);
 router.post("/bills/verify-razorpay", verifyRazorpayBillPayment);
-router.post("/bills", authorize("admin"), createBill);
-router.put("/bills/:id", authorize("admin"), updateBill);
+router.post("/bills", createBill);
+router.put("/bills/:id", updateBill);
 
-router.post("/departments", authorize("admin"), createDepartment);
-router.put("/departments/:id", authorize("admin"), updateDepartment);
+router.post("/departments", authorize("admin", "doctor"), createDepartment);
+router.put("/departments/:id", authorize("admin", "doctor"), updateDepartment);
 
 module.exports = router;

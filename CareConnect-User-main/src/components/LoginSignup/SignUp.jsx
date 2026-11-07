@@ -51,6 +51,9 @@ const SignUp = () => {
         password: formData.password,
         phone: formData.phone,
         age: formData.age,
+        gender: formData.gender,
+        DOB: formData.DOB,
+        location: formData.location,
         city: formData.location,
       });
 

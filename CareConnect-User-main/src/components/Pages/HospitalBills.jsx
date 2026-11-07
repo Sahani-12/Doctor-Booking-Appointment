@@ -17,6 +17,7 @@ import BASE_URL from "@/constants/api";
 import Navbar from "../Navbar";
 import Footer from "../Footer";
 import HospitalPortalNav from "../HospitalPortalNav";
+import BillPaymentModal from "../Payment/BillPaymentModal";
 
 const currency = (value = 0) =>
   new Intl.NumberFormat("en-IN", {
@@ -25,7 +26,7 @@ const currency = (value = 0) =>
     maximumFractionDigits: 0,
   }).format(value || 0);
 
-const BillCard = ({ bill }) => {
+const BillCard = ({ bill, onPay }) => {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "paid":
@@ -147,7 +148,10 @@ const BillCard = ({ bill }) => {
             Download
           </button>
           {dueAmount > 0 && (
-            <button className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-2 font-semibold text-white transition hover:shadow-lg">
+            <button
+              onClick={() => onPay && onPay(bill)}
+              className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-4 py-2 font-semibold text-white transition hover:shadow-lg"
+            >
               Pay Now
             </button>
           )}
@@ -159,13 +163,15 @@ const BillCard = ({ bill }) => {
 
 export default function HospitalBillsPage() {
   const navigate = useNavigate();
-  const token = sessionStorage.getItem("token");
+  const token = sessionStorage.getItem("token") || localStorage.getItem("token");
 
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("all");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [selectedBill, setSelectedBill] = useState(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -346,13 +352,30 @@ export default function HospitalBillsPage() {
             ) : (
               <div className="grid gap-6">
                 {bills.map((bill) => (
-                  <BillCard key={bill._id} bill={bill} />
+                  <BillCard
+                    key={bill._id}
+                    bill={bill}
+                    onPay={(b) => {
+                      setSelectedBill(b);
+                      setPaymentModalOpen(true);
+                    }}
+                  />
                 ))}
               </div>
             )}
           </div>
         </main>
       </div>
+
+      <BillPaymentModal
+        open={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        bill={selectedBill}
+        onPaymentSuccess={() => {
+          loadBills();
+        }}
+      />
+
       <Footer />
     </>
   );

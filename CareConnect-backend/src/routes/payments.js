@@ -49,19 +49,19 @@ router.get("/receipt/:transactionId", protect, paymentController.getReceipt);
 // ADMIN ROUTES
 // =====================================================
 
-// Analytics (admin only)
+// Analytics (admin and doctor)
 router.get(
   "/admin/analytics",
   protect,
-  authorize("admin"),
+  authorize("admin", "doctor"),
   paymentController.getPaymentAnalytics,
 );
 
-// All transactions (admin only)
+// All transactions (admin and doctor)
 router.get(
   "/admin/transactions",
   protect,
-  authorize("admin"),
+  authorize("admin", "doctor"),
   paymentController.getAllTransactions,
 );
 

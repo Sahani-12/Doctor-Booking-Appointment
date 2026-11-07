@@ -3,11 +3,25 @@ const mongoose = require("mongoose");
 
 const transactionSchema = new mongoose.Schema(
   {
-    // Reference to appointment
+    // Reference to appointment (optional for hospital bills)
     appointmentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Appointment",
-      required: true,
+      required: false,
+    },
+
+    // Reference to hospital bill (optional for direct appointment payments)
+    billId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Bill",
+      required: false,
+    },
+
+    // Payment category
+    paymentType: {
+      type: String,
+      enum: ["appointment", "bill", "admission", "other"],
+      default: "appointment",
     },
 
     // Reference to user/patient
@@ -17,11 +31,11 @@ const transactionSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Reference to doctor
+    // Reference to doctor (optional for general hospital bills)
     doctorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Doctor",
-      required: true,
+      required: false,
     },
 
     // Payment amount
@@ -41,7 +55,7 @@ const transactionSchema = new mongoose.Schema(
     // Payment method
     paymentMethod: {
       type: String,
-      enum: ["card", "upi", "netbanking", "wallet", "razorpay"],
+      enum: ["card", "upi", "netbanking", "wallet", "razorpay", "stripe", "demo", "cash"],
       required: true,
     },
 
@@ -116,6 +130,7 @@ const transactionSchema = new mongoose.Schema(
 // Index for faster queries
 transactionSchema.index({ userId: 1, createdAt: -1 });
 transactionSchema.index({ appointmentId: 1 });
+transactionSchema.index({ billId: 1 });
 transactionSchema.index({ status: 1 });
 transactionSchema.index({ gateway: 1 });
 

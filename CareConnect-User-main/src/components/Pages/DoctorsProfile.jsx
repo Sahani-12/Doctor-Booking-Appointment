@@ -64,22 +64,31 @@ export default function DoctorProfile() {
     fetchData();
   }, [doctorId]);
 
-  // 🔥 Fetch slots (requires auth — same as booking)
+  // Fetch slots (public viewing with optional auth)
   useEffect(() => {
     if (!selectedDate || !doctorId) return;
 
     const fetchSlots = async () => {
       try {
+        const token =
+          sessionStorage.getItem("token") || localStorage.getItem("token");
         const formattedDate = dayjs(selectedDate).format("YYYY-MM-DD");
-        const res = await authFetch(
-          `/appointments/slots/${doctorId}/${formattedDate}`,
-          { method: "GET" },
+        const headers = { "Content-Type": "application/json" };
+        if (token) headers.Authorization = `Bearer ${token}`;
+
+        const res = await fetch(
+          `${BASE_URL}/appointments/slots/${doctorId}/${formattedDate}`,
+          { headers },
         );
+        if (!res.ok) {
+          setSlots([]);
+          return;
+        }
         const data = await res.json();
         const list = data.data?.slots || data.slots || [];
         setSlots(list);
       } catch (err) {
-        console.error(err);
+        console.error("Error fetching slots:", err);
         setSlots([]);
       }
     };
@@ -89,6 +98,20 @@ export default function DoctorProfile() {
 
   // 🔥 BOOK APPOINTMENT
   const handleConfirmAppointment = async () => {
+    const token =
+      sessionStorage.getItem("token") || localStorage.getItem("token");
+
+    if (!token) {
+      toast({
+        title: "Login Required ⚠️",
+        description: "Please log in first to book an appointment.",
+        variant: "destructive",
+      });
+      setShowDialog(false);
+      navigate("/login");
+      return;
+    }
+
     if (!selectedSlot) {
       toast({
         title: "Select Slot",
@@ -194,6 +217,21 @@ export default function DoctorProfile() {
 
                     {/* SLOTS */}
                     <div className="mt-6">
+                      {!sessionStorage.getItem("token") &&
+                        !localStorage.getItem("token") && (
+                          <div className="mb-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm flex items-center justify-between">
+                            <span>
+                              ⚠️ Log in to book an appointment with Dr. {doctor.fullname}.
+                            </span>
+                            <button
+                              onClick={() => navigate("/login")}
+                              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold text-xs transition cursor-pointer"
+                            >
+                              Log In
+                            </button>
+                          </div>
+                        )}
+
                       {slots.length === 0 && (
                         <p className="text-gray-500">No slots available</p>
                       )}
@@ -212,6 +250,17 @@ export default function DoctorProfile() {
                                 });
                                 navigate("/appointments");
                               } else if (status !== "booked") {
+                                const token =
+                                  sessionStorage.getItem("token") ||
+                                  localStorage.getItem("token");
+                                if (!token) {
+                                  toast({
+                                    title: "Login Required ⚠️",
+                                    description: `Please log in to book this slot with Dr. ${doctor.fullname}.`,
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
                                 setSelectedSlot(startTime);
                                 setShowDialog(true);
                               }
