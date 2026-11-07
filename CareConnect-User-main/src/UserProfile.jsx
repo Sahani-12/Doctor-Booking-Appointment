@@ -51,11 +51,11 @@ export default function UserProfile() {
           gender: data.data.gender || "male",
           image: data.data.image || data.data.avatar || "",
         });
-        // Update localStorage cache
-        localStorage.setItem("userProfile", JSON.stringify(data.data));
-      } else if (localStorage.getItem("userProfile")) {
-        // Fallback to localStorage if backend fetch fails
-        const cached = JSON.parse(localStorage.getItem("userProfile"));
+        // Update sessionStorage cache
+        sessionStorage.setItem("user", JSON.stringify(data.data));
+      } else if (sessionStorage.getItem("user")) {
+        // Fallback to sessionStorage if backend fetch fails
+        const cached = JSON.parse(sessionStorage.getItem("user"));
         setFormData({
           fullname: cached.fullname || "",
           phone: cached.phone || "",
@@ -67,9 +67,9 @@ export default function UserProfile() {
       }
       setLoading(false);
     } catch (err) {
-      // Fallback to localStorage if network error
-      if (localStorage.getItem("userProfile")) {
-        const cached = JSON.parse(localStorage.getItem("userProfile"));
+      // Fallback to sessionStorage if network error
+      if (sessionStorage.getItem("user")) {
+        const cached = JSON.parse(sessionStorage.getItem("user"));
         setFormData({
           fullname: cached.fullname || "",
           phone: cached.phone || "",
@@ -137,12 +137,7 @@ export default function UserProfile() {
 
         // Update sessionStorage with server response
         sessionStorage.setItem("user", JSON.stringify(updatedUserFromServer));
-
-        // Also save to localStorage for persistence across sessions
-        localStorage.setItem(
-          "userProfile",
-          JSON.stringify(updatedUserFromServer),
-        );
+        localStorage.removeItem("userProfile");
 
         // Dispatch event to update navbar with new image
         window.dispatchEvent(new Event("userUpdated"));

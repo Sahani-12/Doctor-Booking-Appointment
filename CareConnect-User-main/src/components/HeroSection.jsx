@@ -9,10 +9,15 @@ const HeroSection = () => {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
 
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("user");
-    if (storedUser) {
-      setUserLoggedIn(true);
-    }
+    const checkLogin = () => {
+      const storedUser = sessionStorage.getItem("user");
+      const storedToken = sessionStorage.getItem("token");
+      setUserLoggedIn(Boolean(storedUser && storedToken));
+    };
+
+    checkLogin();
+    window.addEventListener("userUpdated", checkLogin);
+    return () => window.removeEventListener("userUpdated", checkLogin);
   }, []);
 
   return (

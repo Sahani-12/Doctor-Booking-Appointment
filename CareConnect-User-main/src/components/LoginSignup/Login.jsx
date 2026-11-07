@@ -34,14 +34,11 @@ const Login = () => {
         const user = data.data.user || data.data;
         const token = data.data.token;
 
-        // Clear previous user's data
+        // Clear any previous stale localStorage data
         localStorage.removeItem("userProfile");
         localStorage.removeItem("token");
         sessionStorage.setItem("user", JSON.stringify(user));
         sessionStorage.setItem("token", token);
-        // Save to localStorage for persistence across sessions
-        localStorage.setItem("userProfile", JSON.stringify(user));
-        localStorage.setItem("token", token);
 
         // Fetch full profile to get latest image/avatar
         try {
@@ -61,11 +58,12 @@ const Login = () => {
               avatar: profileData.data.avatar || user.avatar,
             };
             sessionStorage.setItem("user", JSON.stringify(fullUserData));
-            localStorage.setItem("userProfile", JSON.stringify(fullUserData));
           }
         } catch (profileError) {
           console.log("Profile fetch failed, using login data", profileError);
         }
+
+        window.dispatchEvent(new Event("userUpdated"));
 
         const userName = user.fullname
           ? encodeURIComponent(user.fullname)

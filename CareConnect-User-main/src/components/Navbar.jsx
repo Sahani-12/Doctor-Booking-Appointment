@@ -21,12 +21,11 @@ const Navbar = () => {
   const [userName, setUserName] = useState(() => {
     const storedUser = sessionStorage.getItem("user");
     if (storedUser) {
-      return JSON.parse(storedUser).fullname || null;
-    }
-    // Fallback to localStorage if sessionStorage is empty
-    const cachedUser = localStorage.getItem("userProfile");
-    if (cachedUser) {
-      return JSON.parse(cachedUser).fullname || null;
+      try {
+        return JSON.parse(storedUser).fullname || null;
+      } catch {
+        return null;
+      }
     }
     return null;
   });
@@ -34,14 +33,12 @@ const Navbar = () => {
   const [userImage, setUserImage] = useState(() => {
     const storedUser = sessionStorage.getItem("user");
     if (storedUser) {
-      const parsed = JSON.parse(storedUser);
-      return parsed.profileImage || parsed.image || parsed.avatar || null;
-    }
-    // Fallback to localStorage if sessionStorage is empty
-    const cachedUser = localStorage.getItem("userProfile");
-    if (cachedUser) {
-      const parsed = JSON.parse(cachedUser);
-      return parsed.profileImage || parsed.image || parsed.avatar || null;
+      try {
+        const parsed = JSON.parse(storedUser);
+        return parsed.profileImage || parsed.image || parsed.avatar || null;
+      } catch {
+        return null;
+      }
     }
     return null;
   });
@@ -61,22 +58,34 @@ const Navbar = () => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  // Ensure clean unauthenticated state on fresh visit & purge stale localStorage cache
+  useEffect(() => {
+    const sessionUser = sessionStorage.getItem("user");
+    const sessionToken = sessionStorage.getItem("token");
+    if (!sessionUser || !sessionToken) {
+      localStorage.removeItem("userProfile");
+      localStorage.removeItem("token");
+      setUserName(null);
+      setUserImage(null);
+    }
+  }, []);
+
   // Update navbar instantly when profile image changes
   useEffect(() => {
     const handleUserUpdate = () => {
       const storedUser = sessionStorage.getItem("user");
       if (storedUser) {
-        const parsed = JSON.parse(storedUser);
-        setUserName(parsed.fullname);
-        setUserImage(parsed.profileImage || parsed.image || parsed.avatar);
-      } else {
-        // Fallback to localStorage if sessionStorage is empty
-        const cachedUser = localStorage.getItem("userProfile");
-        if (cachedUser) {
-          const parsed = JSON.parse(cachedUser);
-          setUserName(parsed.fullname);
-          setUserImage(parsed.profileImage || parsed.image || parsed.avatar);
+        try {
+          const parsed = JSON.parse(storedUser);
+          setUserName(parsed.fullname || null);
+          setUserImage(parsed.profileImage || parsed.image || parsed.avatar || null);
+        } catch {
+          setUserName(null);
+          setUserImage(null);
         }
+      } else {
+        setUserName(null);
+        setUserImage(null);
       }
     };
     window.addEventListener("userUpdated", handleUserUpdate);
@@ -307,6 +316,7 @@ const Navbar = () => {
                     localStorage.removeItem("token");
                     setUserName(null);
                     setUserImage(null);
+                    window.dispatchEvent(new Event("userUpdated"));
                     navigate("/");
                   }}
                   className="bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors hidden lg:inline-block"
@@ -494,6 +504,7 @@ const Navbar = () => {
                     localStorage.removeItem("token");
                     setUserName(null);
                     setUserImage(null);
+                    window.dispatchEvent(new Event("userUpdated"));
                     toggleNavbar();
                     navigate("/");
                   }}
