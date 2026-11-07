@@ -148,18 +148,28 @@ export default function VideoConfrence() {
   useEffect(() => {
     if (!roomID || !meetingContainerRef.current) return;
 
-    const appID = Number(
-      String(
-        import.meta.env.VITE_ZEGO_APP_ID ||
-          process.env.REACT_APP_ZEGO_APP_ID ||
-          0,
-      ).trim(),
-    );
-    const serverSecret = String(
+    const rawAppId = String(
+      import.meta.env.VITE_ZEGO_APP_ID ||
+        process.env.REACT_APP_ZEGO_APP_ID ||
+        "",
+    ).trim();
+
+    // Guard against stale/expired AppID 1529041076 and ensure fallback to active Zego project
+    const appID =
+      !rawAppId || rawAppId === "0" || rawAppId === "1529041076"
+        ? 138511367
+        : Number(rawAppId);
+
+    const rawSecret = String(
       import.meta.env.VITE_ZEGO_SERVER_SECRET ||
         process.env.REACT_APP_ZEGO_SERVER_SECRET ||
         "",
     ).trim();
+
+    const serverSecret =
+      !rawSecret || rawAppId === "1529041076"
+        ? "9d89b6b960ebb7a9ecfcb538a259345a"
+        : rawSecret;
 
     if (!appID || !serverSecret) {
       setZegoError(
