@@ -4,6 +4,10 @@
   "private": true,
   "description": "CareConnect Hospital Management System - Microservices & Multi-Portal System",
   "scripts": {
+    "build": "npm --prefix CareConnect-User-main run build",
+    "build:user": "npm --prefix CareConnect-User-main run build",
+    "build:doctor": "npm --prefix CareConnectDoctors-main run build",
+    "build:admin": "npm --prefix CareConnect-Admin run build",
     "start:backend": "npm --prefix CareConnect-backend start",
     "start:user": "npm --prefix CareConnect-User-main run dev",
     "start:doctor": "npm --prefix CareConnectDoctors-main run dev",
