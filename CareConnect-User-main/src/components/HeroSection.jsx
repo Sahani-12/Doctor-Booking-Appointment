@@ -1,7 +1,8 @@
+import video1 from "../assets/video1.mp4";
+import video2 from "../assets/video2.mp4";
 import Search from "../ui/Search";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { useEffect, useState } from "react";
-import { Stethoscope, CalendarCheck, ShieldCheck, Activity } from "lucide-react";
 
 const HeroSection = () => {
   const navigate = useNavigate(); // Initialize useNavigate
@@ -42,25 +43,27 @@ const HeroSection = () => {
           {userLoggedIn ? "Open Hospital Portal" : "Explore Services"}
         </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl w-full px-4 mt-8">
-        <div className="rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent p-6 shadow-md backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-3 text-orange-600 dark:text-orange-400 font-semibold text-lg">
-            <Stethoscope className="w-6 h-6" />
-            <h3>Specialist Consultations</h3>
-          </div>
-          <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed">
-            Connect directly with verified specialists across cardiology, neurology, orthopedics, and more with instant video consultation and digital prescriptions.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-500/10 via-indigo-500/5 to-transparent p-6 shadow-md backdrop-blur-sm">
-          <div className="flex items-center gap-3 mb-3 text-blue-600 dark:text-blue-400 font-semibold text-lg">
-            <Activity className="w-6 h-6" />
-            <h3>Complete Health Records</h3>
-          </div>
-          <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed">
-            Track active hospital admissions, diagnostic lab reports, upcoming appointment schedules, and medical history in one unified dashboard.
-          </p>
-        </div>
+      <div className="flex mt-10 justify-center">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="rounded-lg w-1/2 border border-orange-700 shadow-sm shadow-orange-400 mx-2 my-4"
+        >
+          <source src={video1} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="rounded-lg w-1/2 border border-orange-700 shadow-sm shadow-orange-400 mx-2 my-4"
+        >
+          <source src={video2} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
       </div>
     </div>
   );
